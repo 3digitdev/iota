@@ -1,7 +1,7 @@
 from Speech2Text import Speech2Text, RecognizerSource
 
 
-class Theta(object):
+class Iota(object):
     __slots__ = ['s2t']
 
     def __init__(self):
@@ -14,8 +14,8 @@ class Theta(object):
 def main():
     import speech_recognition as sr
     print(sr.__version__)
-    theta = Theta()
-    theta.listen()
+    iota = Iota()
+    iota.listen()
 
 
 if __name__ == "__main__":

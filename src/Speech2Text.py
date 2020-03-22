@@ -5,15 +5,6 @@ from speech_recognition import \
     Recognizer, AudioSource, Microphone, UnknownValueError, RequestError
 
 
-"""
-NOTES
-
-https://github.com/Uberi/speech_recognition/blob/master/reference/library-reference.rst
-Look into "listen_in_background" for use here
-    Use that to listen for the wake-word and process the next "phrase" as cmd
-"""
-
-
 class PhraseResult(object):
     __slots__ = ['succeeded', 'error_msg', 'phrase']
 
@@ -86,17 +77,20 @@ class Speech2Text(object):
 
     def _process_phrase(self, recognizer, audio):
         self.current_audio = audio
-        result = self._speech_to_text()
+        result = self._speech_to_text(debug=True)
         print(result.succeeded)
         if result.succeeded:
             print(f"Heard phrase:\n  {result.phrase}")
         else:
             print(f"Encountered an error:\n  {result.error_msg}")
 
-    def _speech_to_text(self):
+    def _speech_to_text(self, debug=False):
         result = PhraseResult()
         try:
-            phrase = self.rec_fn({"audio_data": self.current_audio})
+            if debug:
+                phrase = self._stt_alternatives()
+            else:
+                phrase = self.rec_fn({"audio_data": self.current_audio})
             # TODO: Logic here for listening for wake word!
 
             # Temporary:  Allows us to shut it down with a command
@@ -109,7 +103,7 @@ class Speech2Text(object):
             result.error("Unintelligible speech!")
         return result
 
-    def _stt_alternatives(self, audio_in: AudioSource):
+    def _stt_alternatives(self):
         return json.dumps(
             self.rec_fn({"audio_data": self.current_audio, "show_all": True}),
             indent=2

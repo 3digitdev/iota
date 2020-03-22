@@ -1,2 +1,3 @@
-# theta
-Home Automation using Python
+# Iota
+
+_Home Automation using Python_
