@@ -21,8 +21,6 @@ class Iota(object):
 
 
 def main():
-    import speech_recognition as sr
-    print(sr.__version__)
     iota = Iota()
     iota.listen()
 
