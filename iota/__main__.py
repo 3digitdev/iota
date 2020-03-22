@@ -1,4 +1,6 @@
+#!/usr/bin/env python3
 import json
+import os
 
 from Speech2Text import Speech2Text, RecognizerSource
 from modules.Module import ModuleError
@@ -17,7 +19,7 @@ class Iota(object):
             raise
 
     def _read_config(self):
-        with open("config.json", "r") as cfg:
+        with open(os.path.join("iota", "config.json"), "r") as cfg:
             config = json.load(cfg)
         self.wake_words = config['wake_words']
 

@@ -9,4 +9,4 @@ class Time(Module):
 
     def run(self, command: str):
         now = datetime.datetime.now()
-        print("It is {0:%I}:{0:%M}:{0:%S} {0:%p}".format(now))
+        return "It is {0:%I}:{0:%M} {0:%p}".format(now)

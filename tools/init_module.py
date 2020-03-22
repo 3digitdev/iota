@@ -21,7 +21,7 @@ class {name.capitalize()}(Module):
     def __init__(self):
         super().__init__(self)
 
-    def run(self, command: str):
+    def run(self, command: str) -> str:
         pass
 """
     with open(os.path.join(path, f"{name.capitalize()}.py"), "w") as mod:
@@ -38,7 +38,7 @@ def main():
     name = result[0][1]
     command = result[1][1]
     # Create module folder
-    path = os.path.join("..", "src", "modules", name.capitalize())
+    path = os.path.join("..", "iota", "modules", name.capitalize())
     os.mkdir(path)
     # Create init
     Path(os.path.join(path, '__init__.py')).touch()

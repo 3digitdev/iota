@@ -1,10 +1,13 @@
 import json
+import os
 
 
 class ModuleError(Exception):
-    def __init__(self, module, message):
+    def __init__(self, module, message, inner=""):
         self.module = module
         self.message = message
+        if inner != "":
+            self.message += f"\n    {inner}"
 
 
 class Module(object):
@@ -12,7 +15,8 @@ class Module(object):
 
     def __init__(self, child):
         module = child.__class__.__name__
-        with open(f"modules/{module}/{module.lower()}.json", "r") as mcfg:
+        path = os.path.join("iota", "modules", module)
+        with open(os.path.join(path, f"{module.lower()}.json"), "r") as mcfg:
             config = json.load(mcfg)
         if "command_words" not in config.keys():
             raise ModuleError(
