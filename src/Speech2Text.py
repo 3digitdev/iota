@@ -1,11 +1,11 @@
 import json
 import time
-import datetime
 from enum import Enum, auto
 from speech_recognition import \
     Recognizer, AudioSource, Microphone, UnknownValueError, RequestError
 
 from modules.ModuleRunner import ModuleRunner
+from modules.Module import ModuleError
 
 
 class PhraseResult(object):
@@ -63,10 +63,16 @@ class Speech2Text(object):
         self.debug_mode = debug
         self.mic = Microphone()
         self.shutdown = False
-        self.module_runner = ModuleRunner()
+        try:
+            self.module_runner = ModuleRunner()
+        except ModuleError:
+            raise
 
     def active_listen(self):
-        stop_fn = self.rec.listen_in_background(self.mic, self._process_phrase)
+        try:
+            stop_fn = self.rec.listen_in_background(self.mic, self._process_phrase)
+        except ModuleError:
+            raise
         # Eventually we can use this to have it always running...
         # while True:
         # For now we will use 'shut down' as an 'off' command
@@ -91,7 +97,10 @@ class Speech2Text(object):
             print(f"Heard phrase:\n  {result.phrase}")
             wake_word = self._check_wake_word(result.phrase)
             if wake_word:
-                self._parse_phrase(result.phrase, wake_word)
+                try:
+                    self._parse_phrase(result.phrase, wake_word)
+                except ModuleError:
+                    raise
             # Temporary:  Allows us to shut it down with a command
             if result.phrase == 'shut down':
                 self.shutdown = True
@@ -108,7 +117,10 @@ class Speech2Text(object):
         # Grabs everything AFTER the wake word (allowing for "hey [wake_word]")
         command = phrase[phrase.find(wake_word, 0) + len(wake_word):].strip()
         print(f"Processing command: [{command}]")
-        self.module_runner.run_module(command)
+        try:
+            self.module_runner.run_module(command)
+        except ModuleError:
+            raise
 
     def _speech_to_text(self, debug: bool = False) -> PhraseResult:
         result = PhraseResult()

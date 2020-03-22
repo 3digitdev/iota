@@ -1,5 +1,7 @@
 import json
+
 from Speech2Text import Speech2Text, RecognizerSource
+from modules.Module import ModuleError
 
 
 class Iota(object):
@@ -7,9 +9,12 @@ class Iota(object):
 
     def __init__(self):
         self._read_config()
-        self.s2t = Speech2Text(
-            RecognizerSource.GOOGLE, self.wake_words, filter=True
-        )
+        try:
+            self.s2t = Speech2Text(
+                RecognizerSource.GOOGLE, self.wake_words, filter=True
+            )
+        except ModuleError:
+            raise
 
     def _read_config(self):
         with open("config.json", "r") as cfg:
@@ -17,12 +22,18 @@ class Iota(object):
         self.wake_words = config['wake_words']
 
     def listen(self):
-        self.s2t.active_listen()
+        try:
+            self.s2t.active_listen()
+        except ModuleError:
+            raise
 
 
 def main():
-    iota = Iota()
-    iota.listen()
+    try:
+        iota = Iota()
+        iota.listen()
+    except ModuleError as err:
+        print(f"Your {err.module} module has an error:\n  {err.message}")
 
 
 if __name__ == "__main__":
