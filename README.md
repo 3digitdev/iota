@@ -12,4 +12,4 @@ _Home Automation using Python_
 
 ## Usage:
 
-From project root, run `python3 -m iota`
+From project root, run `python3 -m iota`, then say something!

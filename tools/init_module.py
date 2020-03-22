@@ -17,28 +17,28 @@ def build_module(name: str, path: str):
     contents = f"""from modules.Module import Module
 
 
-class {name.capitalize()}(Module):
+class {name}(Module):
     def __init__(self):
         super().__init__(self)
 
     def run(self, command: str) -> str:
         pass
 """
-    with open(os.path.join(path, f"{name.capitalize()}.py"), "w") as mod:
+    with open(os.path.join(path, f"{name}.py"), "w") as mod:
         mod.write(contents)
 
 
 def main():
     print("Let's create a Module!")
     cli = VerticalPrompt([
-        Input("Module Name:  "),
+        Input("Module Name (with spaces):  "),
         Input("First Command:  ")
     ])
     result = cli.launch()
-    name = result[0][1]
+    name = "".join([word.capitalize() for word in result[0][1].split(' ')])
     command = result[1][1]
     # Create module folder
-    path = os.path.join("..", "iota", "modules", name.capitalize())
+    path = os.path.join("iota", "modules", name)
     os.mkdir(path)
     # Create init
     Path(os.path.join(path, '__init__.py')).touch()

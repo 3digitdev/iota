@@ -51,5 +51,5 @@ class ModuleRunner(object):
 
     def _say(self, phrase):
         tts = gTTS(text=phrase, lang='en', slow=False)
-        tts.save('tmp.mp3')
-        os.system('mpg123 tmp.mp3')
+        tts.save('last_command.mp3')
+        os.system('mpg123 last_command.mp3')
