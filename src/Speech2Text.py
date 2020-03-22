@@ -1,8 +1,11 @@
 import json
 import time
+import datetime
 from enum import Enum, auto
 from speech_recognition import \
     Recognizer, AudioSource, Microphone, UnknownValueError, RequestError
+
+from modules.ModuleRunner import ModuleRunner
 
 
 class PhraseResult(object):
@@ -36,12 +39,15 @@ class Speech2Text(object):
         'filter_duration',
         'debug_mode',
         'mic',
-        'shutdown'
+        'shutdown',
+        'wake_words',
+        'module_runner'
     ]
 
     def __init__(
         self,
         recognizer: RecognizerSource,
+        wake_words: list,
         filter: bool = False,
         filter_duration: float = 0.5,
         debug=False
@@ -51,11 +57,13 @@ class Speech2Text(object):
             RecognizerSource.GOOGLE: lambda x: self.rec.recognize_google(**x),
             RecognizerSource.SPHINX: lambda x: self.rec.recognize_sphinx(**x)
         }[recognizer]
+        self.wake_words = wake_words
         self.filter = filter
         self.filter_duration = filter_duration
         self.debug_mode = debug
         self.mic = Microphone()
         self.shutdown = False
+        self.module_runner = ModuleRunner()
 
     def active_listen(self):
         stop_fn = self.rec.listen_in_background(self.mic, self._process_phrase)
@@ -66,44 +74,57 @@ class Speech2Text(object):
             time.sleep(0.1)
         stop_fn(wait_for_stop=False)
 
-    def mic_to_text(self):
+    def mic_to_text(self) -> PhraseResult:
         with self.mic as source:
             self.current_audio = self.rec.listen(source)
             return self._speech_to_text()
 
-    def file_to_text(self, file: str):
+    def file_to_text(self, file: str) -> PhraseResult:
         self._process_audio(file)
         return self._speech_to_text()
 
-    def _process_phrase(self, recognizer, audio):
+    def _process_phrase(self, recognizer: Recognizer, audio: AudioSource):
         self.current_audio = audio
-        result = self._speech_to_text(debug=True)
-        print(result.succeeded)
+        # set debug=True to see the results that were detected
+        result = self._speech_to_text()
         if result.succeeded:
             print(f"Heard phrase:\n  {result.phrase}")
+            wake_word = self._check_wake_word(result.phrase)
+            if wake_word:
+                self._parse_phrase(result.phrase, wake_word)
+            # Temporary:  Allows us to shut it down with a command
+            if result.phrase == 'shut down':
+                self.shutdown = True
         else:
             print(f"Encountered an error:\n  {result.error_msg}")
 
-    def _speech_to_text(self, debug=False):
+    def _check_wake_word(self, phrase: str) -> str:
+        for word in self.wake_words:
+            if word in phrase:
+                return word
+        return None
+
+    def _parse_phrase(self, phrase: str, wake_word: str):
+        # Grabs everything AFTER the wake word (allowing for "hey [wake_word]")
+        command = phrase[phrase.find(wake_word, 0) + len(wake_word):].strip()
+        print(f"Processing command: [{command}]")
+        self.module_runner.run_module(command)
+
+    def _speech_to_text(self, debug: bool = False) -> PhraseResult:
         result = PhraseResult()
         try:
             if debug:
                 phrase = self._stt_alternatives()
             else:
                 phrase = self.rec_fn({"audio_data": self.current_audio})
-            # TODO: Logic here for listening for wake word!
-
-            # Temporary:  Allows us to shut it down with a command
-            if phrase == 'shut down':
-                self.shutdown = True
-            result.store_phrase(phrase)
+            result.store_phrase(phrase.lower())
         except RequestError:
             result.error("Recognizer API not reachable!")
         except UnknownValueError:
             result.error("Unintelligible speech!")
         return result
 
-    def _stt_alternatives(self):
+    def _stt_alternatives(self) -> str:
         return json.dumps(
             self.rec_fn({"audio_data": self.current_audio, "show_all": True}),
             indent=2
