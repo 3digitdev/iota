@@ -25,10 +25,13 @@ For all of the above, run:
 
 **From project root**, run `python3 tools/init_module.py`.
 
+### CLI
+
 **Module Name:**  This should be a space-separated form of the name, so like
-"philips hue" for the PhilipsHue Module
+"philips hue" for the PhilipsHue Module.
+
 **First Command:**  This isn't really required, but you can add this to put a
-placeholder command in the config file
+placeholder command in the config file.
 
 This will do the following for a module you call `hello world`:
 ```
@@ -44,7 +47,7 @@ root
 
 From here, you can implement your new Module.  The `run()` function in your module
 is inherited from the base `Module`, and is called by the `ModuleRunner` if any of your
-commands are matched by the incoming spoken phrase
+commands are matched by the incoming spoken phrase.
 
 **For ideas on how to handle parameters on commands, see Vizio or PhilipsHue for examples!**
 
