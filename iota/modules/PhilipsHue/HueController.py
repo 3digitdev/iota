@@ -1,8 +1,8 @@
 import requests
-import time
 import json
 
 
+# REFERENCE:  https://developers.meethue.com/develop/get-started-2/
 class HueController(object):
     def __init__(self):
         self.user = "7wl8U1CnKZlk6kE8WHPzCQatw5VqWb0oiqjZFinR"

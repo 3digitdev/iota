@@ -70,7 +70,9 @@ class Speech2Text(object):
 
     def active_listen(self):
         try:
-            stop_fn = self.rec.listen_in_background(self.mic, self._process_phrase)
+            stop_fn = self.rec.listen_in_background(
+                self.mic, self._process_phrase
+            )
         except ModuleError:
             raise
         # Eventually we can use this to have it always running...

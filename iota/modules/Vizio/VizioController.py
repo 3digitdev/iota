@@ -5,6 +5,7 @@ import urllib3
 from wakeonlan import send_magic_packet
 
 
+# REFERENCE:  https://github.com/exiva/Vizio_SmartCast_API
 class VizioController(object):
     def __init__(self):
         # Vizio's API is completely insecure, but it's also local only, so...
