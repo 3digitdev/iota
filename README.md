@@ -35,7 +35,7 @@ placeholder command in the config file.
 
 This will do the following for a module you call `hello world`:
 ```
-root
+iota
  ├─ modules
  │   ├─ HelloWorld
  │   │   ├─ __init__.py
