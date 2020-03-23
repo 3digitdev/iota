@@ -5,7 +5,9 @@
         "state": "on|off"
     },
     "command_words": [
+        "{name} {state}",
         "{name} lights {state}",
+        "{name} to {bright}",
         "turn {state} (?:the )?{name} lights",
         "{name} lights to {bright}",
         "turn {state} the {name} lights to {bright}"

@@ -49,6 +49,10 @@ From here, you can implement your new Module.  The `run()` function in your modu
 is inherited from the base `Module`, and is called by the `ModuleRunner` if any of your
 commands are matched by the incoming spoken phrase.
 
+If you want your Module to give a spoken response, return the phrase to speak as a string from
+the `run()` function in your Module.  Empty strings and/or `None` return values will result in no
+speech after the Module finishes.
+
 **For ideas on how to handle parameters on commands, see Vizio or PhilipsHue for examples!**
 
 **Note that the `"regexes"` key will be required in your `.json` file for this!**
