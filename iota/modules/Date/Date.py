@@ -7,7 +7,7 @@ class Date(Module):
     def __init__(self):
         super().__init__(self)
 
-    def run(self, command: str) -> str:
+    def run(self, command: str, regex) -> str:
         now = datetime.datetime.now()
         day = self._parse_day(now)
         return "It is {0:%A}.  {0:%B} {1}.  {0:%Y}".format(now, day)

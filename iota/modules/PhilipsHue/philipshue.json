@@ -1,0 +1,13 @@
+{
+    "regexes": {
+        "name": ".+",
+        "bright": "\\d{1,3}%|\\w{1,2}%|\\w{1,2} percent",
+        "state": "on|off"
+    },
+    "command_words": [
+        "{name} lights {state}",
+        "turn {state} (?:the )?{name} lights",
+        "{name} lights to {bright}",
+        "turn {state} the {name} lights to {bright}"
+    ]
+}

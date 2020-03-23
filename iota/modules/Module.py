@@ -1,6 +1,8 @@
 import json
 import os
 
+import utils.mod_utils as Utils
+
 
 class ModuleError(Exception):
     def __init__(self, module, message, inner=""):
@@ -11,7 +13,7 @@ class ModuleError(Exception):
 
 
 class Module(object):
-    __slots__ = ['commands']
+    __slots__ = ['commands', 'regexes']
 
     def __init__(self, child):
         module = child.__class__.__name__
@@ -23,7 +25,9 @@ class Module(object):
                 module,
                 "Improperly formatted config: No command words"
             )
-        child.commands = config["command_words"]
+        child.commands = Utils.parse_to_regexes(config)
+        if "regexes" in config.keys():
+            child.regexes = config["regexes"]
 
-    def run(self, command: str):
+    def run(self, command: str, regex):
         pass

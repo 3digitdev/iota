@@ -1,8 +1,10 @@
 import json
-from gtts import gTTS
 import os
+import re
+from gtts import gTTS
 
 from modules.Module import ModuleError
+import utils.mod_utils as Utils
 
 
 class ModuleRunner(object):
@@ -25,8 +27,9 @@ class ModuleRunner(object):
                             class_name,
                             "Improperly formatted config: No command words"
                         )
-                    self.cmd_map[class_name] = config["command_words"]
-                    self.all_commands.extend(config["command_words"])
+                    command_regexes = Utils.parse_to_regexes(config)
+                    self.cmd_map[class_name] = command_regexes
+                    self.all_commands.extend(command_regexes)
                 except json.JSONDecodeError as err:
                     raise ModuleError(
                         class_name,
@@ -35,18 +38,25 @@ class ModuleRunner(object):
                     )
 
     def run_module(self, command):
-        if command not in self.all_commands:
+        found = False
+        if not any([re.match(reg, command) for reg in self.all_commands]):
             return None
         for name, cmds in self.cmd_map.items():
-            if command in cmds:
-                try:
-                    exec(f"from modules.{name}.{name} import {name}")
-                    module = eval(f"{name}()")
-                    response = module.run(command)
-                    if response is not None and response != "":
-                        self._say(response)
-                except ModuleError:
-                    raise
+            for regex in cmds:
+                if re.match(regex, command):
+                    found = True
+                    print(f"    MATCHED for {name}:")
+                    print(f"      {regex}")
+                    try:
+                        exec(f"from modules.{name}.{name} import {name}")
+                        module = eval(f"{name}()")
+                        response = module.run(command, regex)
+                        if response is not None and response != "":
+                            self._say(response)
+                    except ModuleError:
+                        raise
+                    break
+            if found:
                 break
 
     def _say(self, phrase):

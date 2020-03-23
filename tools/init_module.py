@@ -21,7 +21,7 @@ class {name}(Module):
     def __init__(self):
         super().__init__(self)
 
-    def run(self, command: str) -> str:
+    def run(self, command: str, regex) -> str:
         pass
 """
     with open(os.path.join(path, f"{name}.py"), "w") as mod:
