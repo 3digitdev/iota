@@ -1,0 +1,30 @@
+{
+    "regexes": {
+        "song": ".*",
+        "artist": ".*",
+        "album": ".*",
+        "playlist": ".*",
+        "direction": "previous|next",
+        "volume": "up|down|\\d{1,2}"
+    },
+    "command_words": [
+        "play ?(?:music|song)?$",
+        "pause ?(?:music|song)?$",
+        "stop ?(?:music|song)?$",
+        "(?:play (?:the )?)?{direction}(?: song)?$",
+        "start ?(?:(?:the )?(?:song|album|playlist))? over$",
+
+        "shuffle(?: the latest album by)? {artist}$",
+        "shuffle(?: songs on)?(?: album)? {album}$",
+        "shuffle(?: ?(?:my|the)? playlist)? {playlist}(?: playlist)?$",
+
+        "play {song} by {artist}$",
+        "play {song} on {album}$",
+        "play(?: ?(?:my|the)? playlist)? {playlist}$",
+        "play(?:(?: the)? song)? {song}(?: by(?: the artist)? {artist})?(?: on(?: the album)? {album})?$",
+        "play(?:(?: the)? album)? {album}(?: by(?: the artist)? {artist})?$",
+        "play(?:(?: the)? artist)? {artist}$",
+
+        "(?:set (?:the )?)?volume(?: to)? {volume}"
+    ]
+}

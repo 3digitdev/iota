@@ -1,6 +1,9 @@
 # Project temp files
 **/*.mp3
 
+# Ignore google auth file
+auth.json
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

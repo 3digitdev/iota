@@ -103,3 +103,7 @@ class VizioController(object):
                 "HASHVAL": current["hash"]
             }
         )
+
+
+if __name__ == "__main__":
+    print("wtf")
