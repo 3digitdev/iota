@@ -1,11 +1,11 @@
 import os
 import re
-from typing import Callable
 from word2number import w2n
 import random
 
 from modules.Module import Module
 from modules.GoogleMusic.GoogleMusicController import GoogleMusicController
+from utils.mod_utils import get_params
 
 
 class GoogleMusic(Module):
@@ -16,13 +16,7 @@ class GoogleMusic(Module):
         self.set_volume(5)
 
     def run(self, command: str, regex) -> str:
-        match = re.match(regex, command)
-        params = {}
-        for group_name in self.regexes.keys():
-            try:
-                params[group_name] = match.group(group_name)
-            except IndexError:
-                params[group_name] = ""
+        params = get_params(command, regex, self.regexes.keys())
         return self._pick_action(command, params)
 
     def _pick_action(self, command: str, params: dict) -> str:

@@ -13,3 +13,14 @@ def parse_to_regexes(config: dict) -> list:
             )
         commands.append(re.compile(command))
     return commands
+
+
+def get_params(command, regex, groups) -> dict:
+    match = re.match(regex, command)
+    params = {}
+    for group_name in groups:
+        try:
+            params[group_name] = match.group(group_name)
+        except IndexError:
+            params[group_name] = ""
+    return params

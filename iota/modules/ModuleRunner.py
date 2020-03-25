@@ -69,6 +69,7 @@ class ModuleRunner(object):
                         response = module.run(command, regex)
                         # Modules that talk back should return the response str
                         if response is not None and response != "":
+                            print(f"RESPONSE:  {response}")
                             self._say(response)
                     except ModuleError:
                         raise
@@ -82,4 +83,4 @@ class ModuleRunner(object):
         #  1. gTTS doesn't ACTUALLY utilize the speaker.
         #  2. We can re-use this last command in Modules like RepeatPhrase
         tts.save('last_command.mp3')
-        os.system('mpg123 last_command.mp3')
+        os.system('mpg123 --quiet last_command.mp3')

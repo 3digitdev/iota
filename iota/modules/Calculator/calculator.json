@@ -1,0 +1,10 @@
+{
+    "regexes": {
+        "operand": "\\d+",
+        "operator": "(?:times|x|\\*|divided by|\\/|mod(?:ul(?:o|us))?|\\%|plus|\\+|minus|\\-|to the power of|\\^)",
+        "expression": "\\d+(?:\\s*(?:times|x|\\*|divided by|\\/|mod(?:ul(?:e|o|us))?|\\%|plus|\\+|minus|\\-|to the power of|\\^)\\s*\\d+)*"
+    },
+    "command_words": [
+        "what(?:'| i)?s {expression}"
+    ]
+}

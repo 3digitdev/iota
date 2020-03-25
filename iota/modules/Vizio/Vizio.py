@@ -4,6 +4,7 @@ from word2number import w2n
 
 from modules.Module import Module
 from modules.Vizio.VizioController import VizioController
+from utils.mod_utils import get_params
 
 
 class Vizio(Module):
@@ -11,13 +12,7 @@ class Vizio(Module):
         super().__init__(self)
 
     def run(self, command: str, regex) -> str:
-        match = re.match(regex, command)
-        params = {}
-        for group_name in self.regexes.keys():
-            try:
-                params[group_name] = match.group(group_name)
-            except IndexError:
-                params[group_name] = ""
+        params = get_params(command, regex, self.regexes.keys())
         action_fn = self._pick_action(params)
         action_fn()
         return ""

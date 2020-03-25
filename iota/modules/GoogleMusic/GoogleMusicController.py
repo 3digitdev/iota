@@ -7,6 +7,12 @@ from multiprocessing import Process, Manager
 from gmusicapi import Mobileclient
 
 
+"""
+Reference:
+https://unofficial-google-music-api.readthedocs.io/en/latest/reference/mobileclient.html
+"""
+
+
 class Song(object):
     def __init__(self, song_data: dict):
         self.id = song_data["storeId"]
