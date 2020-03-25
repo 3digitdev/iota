@@ -2,6 +2,7 @@ import json
 import os
 import re
 from gtts import gTTS
+from word2number import w2n
 
 from modules.Module import ModuleError
 import utils.mod_utils as Utils
@@ -50,6 +51,13 @@ class ModuleRunner(object):
 
     def run_module(self, command):
         found = False
+        tmp = []
+        for word in command.split(" "):
+            try:
+                tmp.append(str(w2n.word_to_num(word)))
+            except ValueError:
+                tmp.append(word)
+        command = " ".join(tmp)
         if not any([re.match(reg, command) for reg in self.all_commands]):
             # The command doesn't match any valid commands Iota knows
             return None

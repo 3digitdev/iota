@@ -11,7 +11,7 @@ def parse_to_regexes(config: dict) -> list:
                 placeholder,
                 f"(?P<{name}>{config['regexes'][name]})"
             )
-        commands.append(re.compile(command))
+        commands.append(re.compile(f"^{command}$"))
     return commands
 
 

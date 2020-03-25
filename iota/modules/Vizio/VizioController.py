@@ -21,6 +21,7 @@ class VizioController(object):
         }
 
     def _build_url(self, parts: list) -> str:
+        print(f"https://{self.ip}:{self.port}/{'/'.join(parts)}")
         return f"https://{self.ip}:{self.port}/{'/'.join(parts)}"
 
     def _call(self, method: str, parts: list, body={}) -> requests.Response:

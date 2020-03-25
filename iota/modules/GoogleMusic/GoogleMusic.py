@@ -32,7 +32,7 @@ class GoogleMusic(Module):
             return self.gmusic.pause_song()
         if command.startswith("stop"):
             return self.gmusic.stop_song()
-        if re.match(r'play ?(?:music|song)?$'):
+        if re.match(r'play ?(?:music|song)?'):
             return self.gmusic.resume_song()
         if params["direction"] == "next":
             return self.gmusic.next_song()

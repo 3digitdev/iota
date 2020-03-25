@@ -8,24 +8,24 @@
         "volume": "up|down|\\d{1,2}"
     },
     "command_words": [
-        "play ?(?:music|song)?$",
-        "pause ?(?:music|song)?$",
-        "stop ?(?:music|song)?$",
-        "(?:play (?:the )?)?{direction}(?: song)?$",
-        "start ?(?:(?:the )?(?:song|playlist))? over$",
-        "shuffle(?: ?(?:my|the)? playlist)? {playlist}(?: playlist)?$",
-        "play {song} by {artist}$",
-        "play(?: ?(?:my|the)? playlist)? {playlist}$",
-        "play(?:(?: the)? song)? {song}(?: by(?: the artist)? {artist})?$",
+        "play ?(?:music|song)?",
+        "pause ?(?:music|song)?",
+        "stop ?(?:music|song)?",
+        "(?:play (?:the )?)?{direction}(?: song)?",
+        "start ?(?:(?:the )?(?:song|playlist))? over",
+        "shuffle(?: ?(?:my|the)? playlist)? {playlist}(?: playlist)?",
+        "play {song} by {artist}",
+        "play(?: ?(?:my|the)? playlist)? {playlist}",
+        "play(?:(?: the)? song)? {song}(?: by(?: the artist)? {artist})?",
         "(?:set (?:the )?)?volume(?: to)? {volume}"
     ],
     "unused_commands": [
-        "shuffle(?: the latest album by)? {artist}$",
-        "shuffle(?: songs on)?(?: album)? {album}$",
-        "start ?(?:(?:the )?(?:song|album|playlist))? over$",
-        "play {song} on {album}$",
-        "play(?:(?: the)? song)? {song}(?: by(?: the artist)? {artist})?(?: on(?: the album)? {album})?$",
-        "play(?:(?: the)? album)? {album}(?: by(?: the artist)? {artist})?$",
-        "play(?:(?: the)? artist)? {artist}$"
+        "shuffle(?: the latest album by)? {artist}",
+        "shuffle(?: songs on)?(?: album)? {album}",
+        "start ?(?:(?:the )?(?:song|album|playlist))? over",
+        "play {song} on {album}",
+        "play(?:(?: the)? song)? {song}(?: by(?: the artist)? {artist})?(?: on(?: the album)? {album})?",
+        "play(?:(?: the)? album)? {album}(?: by(?: the artist)? {artist})?",
+        "play(?:(?: the)? artist)? {artist}"
     ]
 }

@@ -1,0 +1,11 @@
+{
+    "regexes": {
+        "dice": "(?P<count>\\d+)?\\s*d\\s*(?P<dice>\\d+)",
+        "expression": "\\d*\\s*d?\\s*\\d+(?:\\s*(?:\\+|\\-)\\s*\\d*\\s*d?\\s*\\d+)*"
+    },
+    "command_words": [
+        "flip a coin",
+        "roll a dice",
+        "roll (?:a )?{expression}"
+    ]
+}

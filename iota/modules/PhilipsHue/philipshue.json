@@ -5,11 +5,11 @@
         "state": "on|off"
     },
     "command_words": [
-        "{name} {state}",
         "{name} lights {state}",
+        "{name}(?<!tv) {state}",
+        "{name} lights to {bright}",
         "{name} to {bright}",
         "turn {state} (?:the )?{name} lights",
-        "{name} lights to {bright}",
         "turn {state} the {name} lights to {bright}"
     ]
 }
