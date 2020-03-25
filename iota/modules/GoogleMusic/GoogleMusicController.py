@@ -1,13 +1,15 @@
-import json
+import time
 import signal
 import subprocess
 import os
+import psutil
+from multiprocessing import Process, Manager
 from gmusicapi import Mobileclient
 
 
 class Song(object):
     def __init__(self, song_data: dict):
-        self.id = song_data["nid"]
+        self.id = song_data["storeId"]
         self.name = song_data["title"]
         self.artist = song_data["artist"]
         if song_data["album"] == "<|\u00ba_\u00ba|>":
@@ -39,6 +41,9 @@ class Playlist(object):
     def set_list(self, song_list: list):
         self.songs = song_list
 
+    def __len__(self):
+        return len(self.songs)
+
 
 class SearchResults(object):
     def __init__(self, raw_data):
@@ -60,6 +65,7 @@ class GoogleMusicController(object):
         # TODO: change this to relative path from run location
         self.client.oauth_login(Mobileclient.FROM_MAC_ADDRESS, "auth.json")
         self.process = None
+        self.player = None
         self.playlist = Playlist("IotaGoogleMusicController")
         self.current_index = -1
 
@@ -83,7 +89,7 @@ class GoogleMusicController(object):
         if len(self.playlist) == 0:
             return
         if 0 <= self.current_index < len(self.playlist):
-            current_song = self.playlist.song[self.current_index]
+            current_song = self.playlist.songs[self.current_index]
             self._spawn_player(current_song.id)
         return
 
@@ -115,15 +121,25 @@ class GoogleMusicController(object):
         self._play_current_song()
         return ""
 
-    def get_song(self, name: str, artist: str = None) -> Song:
-        if artist is not None:
+    def get_song(self, name: str, artist: str = "", album: str = "") -> Song:
+        if artist != "" and album != "":
+            return self._get_entity(
+                name,
+                "songs",
+                lambda x: x.artist == artist and x.album == album
+            )
+        if artist != "":
             return self._get_entity(
                 name, "songs", lambda x: x.artist == artist
             )
+        if album != "":
+            return self._get_entity(
+                name, "songs", lambda x: x.album == album
+            )
         return self._get_entity(name, "songs")
 
-    def get_album(self, name: str, artist: str = None) -> Album:
-        if artist is not None:
+    def get_album(self, name: str, artist: str = "") -> Album:
+        if artist != "":
             return self._get_entity(
                 name, "albums", lambda x: x.artist == artist
             )
@@ -140,33 +156,65 @@ class GoogleMusicController(object):
         # We will trust Google's ability to filter search results... :P
         return results[0]
 
+    def _run_multiprocess(self, on_exit, command, share):
+        process = subprocess.Popen(command)
+        share["pid"] = process.pid
+        process.wait()
+        on_exit()
+        return
+
     def _spawn_player(self, track_id: str):
-        if self.process is not None:
-            self.process.kill()
         stream_url = self.client.get_stream_url(
             track_id, device_id=self.device_id
         ).replace('https', 'http')
-        self.process = subprocess.Popen(['mpg123', '--quiet', stream_url])
+        self.stop_song()
+        self.manager = Manager()
+        self.shared_vars = self.manager.dict()
+        self.player = Process(
+            target=self._run_multiprocess,
+            args=(
+                self.next_song,
+                ['mpg123', '--quiet', stream_url],
+                self.shared_vars
+            )
+        )
+        self.player.start()
 
     def pause_song(self):
-        self.process.send_signal(signal.SIGSTOP)
+        if "pid" in self.shared_vars.keys():
+            psutil.Process(self.shared_vars["pid"]).send_signal(signal.SIGSTOP)
 
     def resume_song(self):
-        self.process.send_signal(signal.SIGCONT)
+        if "pid" in self.shared_vars.keys():
+            psutil.Process(self.shared_vars["pid"]).send_signal(signal.SIGCONT)
 
     def stop_song(self):
-        if self.process is not None:
-            self.process.kill()
-            self.process = None
+        if self.player is not None:
+            if "pid" in self.shared_vars.keys():
+                psutil.Process(self.shared_vars["pid"]) \
+                      .send_signal(signal.SIGTERM)
+                self.shared_vars = None
+                self.manager = None
+            self.player.terminate()
+            self.player = None
 
-    def search(self, query: str, max_results: int = 10) -> SearchResults:
+    def search(self, query: str, max_results: int = 100) -> SearchResults:
         results = self.client.search(query, max_results)
         return SearchResults(results)
 
 
 def main():
     gmusic = GoogleMusicController()
-    print(gmusic.get_artist("AJR").name)
+    # print(gmusic.get_song("I'm Good", "GRiZ"))
+    playlist = gmusic.get_playlist("funkstep")
+    # print(playlist.songs[0].artist)
+    gmusic.play_songs(playlist.songs)
+    time.sleep(3)
+    gmusic.pause_song()
+    time.sleep(3)
+    gmusic.resume_song()
+    gmusic.stop_song()
+    # print(gmusic.process)
 
 
 if __name__ == "__main__":

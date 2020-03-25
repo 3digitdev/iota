@@ -52,7 +52,16 @@ class GoogleMusic(Module):
                 random.shuffle(songs)
             return self.gmusic.play_songs(songs)
         if params["song"] != "":
-            pass
+            song = self.gmusic.get_song(
+                params["song"], params["artist"], params["album"]
+            )
+            return self.gmusic.play_songs([song])
+        # Disabled because gmusicapi doesn't return album songlists
+        # elif params["album"] != "":
+        #     album = self.gmusic.get_album(params["album"], params["artist"])
+        # Disabled because gmusicapi doesn't return the artist albums
+        # elif params["artist"] != "":
+        #     artist = self.gmusic.get_artist(params["artist"])
         return result
 
     def set_volume(self, volume: int):
