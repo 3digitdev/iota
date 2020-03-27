@@ -212,8 +212,6 @@ def spawn_player(get_url, playlist, shared, start=0):
 
 def main():
     gmusic = GoogleMusicController()
-    # print(json.dumps(gmusic.client.get_registered_devices(), indent=2))
-    # id = "Toux2ixoxdukyjednwq56phwiqy"
     print([song.id for song in gmusic.play_playlist("funkstep")])
     # print(gmusic.play_song("i'm good", "griz"))
     time.sleep(3)
