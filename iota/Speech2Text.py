@@ -124,15 +124,13 @@ class Speech2Text(object):
         except ModuleError:
             raise
 
-    def _speech_to_text(self, debug: bool = False) -> PhraseResult:
+    def _speech_to_text(self) -> PhraseResult:
         result = PhraseResult()
         try:
-            if debug:
-                phrase = self._stt_alternatives()
-            else:
-                phrase = self.rec_fn({"audio_data": self.current_audio})
+            phrase = self.rec_fn({"audio_data": self.current_audio})
             result.store_phrase(phrase.lower())
-        except RequestError:
+        except RequestError as e:
+            print(e)
             result.error("Recognizer API not reachable!")
         except UnknownValueError:
             result.error("Unintelligible speech!")
