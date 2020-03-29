@@ -2,7 +2,7 @@
 import json
 import os
 
-from Speech2Text import Speech2Text, RecognizerSource
+from Speech2Text import Speech2Text
 from modules.Module import ModuleError
 
 
@@ -12,9 +12,7 @@ class Iota(object):
     def __init__(self):
         self._read_config()
         try:
-            self.s2t = Speech2Text(
-                RecognizerSource.GOOGLE, self.wake_words, filter=True
-            )
+            self.s2t = Speech2Text(self.wake_words)
         except ModuleError:
             raise
 
@@ -25,7 +23,7 @@ class Iota(object):
 
     def listen(self):
         try:
-            self.s2t.active_listen()
+            self.s2t.listen()
         except ModuleError:
             raise
 

@@ -1,7 +1,6 @@
 import json
 import os
 import re
-from gtts import gTTS
 from word2number import w2n
 
 from modules.Module import ModuleError
@@ -9,13 +8,18 @@ import utils.mod_utils as Utils
 
 
 class ModuleRunner(object):
-    __slots__ = ['cmd_map', 'all_commands']
+    __slots__ = [
+        'cmd_map', 'all_commands', 'speech_config', 'speech_synthesizer'
+    ]
 
-    def __init__(self):
+    def __init__(self, speech_cfg):
         # maps each module name to a list of its regexed commands
         self.cmd_map = {}
         # all valid commands for Iota, for quick lookup
         self.all_commands = []
+        # Configure Azure Speech Synthesizer
+        self.speech_config = speech_cfg
+        # Load all Modules
         for class_name in os.listdir(os.path.join("iota", "modules")):
             if class_name == "__pycache__":
                 continue
@@ -57,7 +61,7 @@ class ModuleRunner(object):
                 tmp.append(str(w2n.word_to_num(word)))
             except ValueError:
                 tmp.append(word)
-        command = " ".join(tmp)
+        command = " ".join(tmp).rstrip(".!?").lower()
         if not any([re.match(reg, command) for reg in self.all_commands]):
             # The command doesn't match any valid commands Iota knows
             return None
@@ -86,9 +90,6 @@ class ModuleRunner(object):
                 break
 
     def _say(self, phrase):
-        tts = gTTS(text=phrase, lang='en', slow=False)
-        # We store the command for 2 reasons:
-        #  1. gTTS doesn't ACTUALLY utilize the speaker.
-        #  2. We can re-use this last command in Modules like RepeatPhrase
-        tts.save('last_command.mp3')
-        os.system('mpg123 --quiet last_command.mp3')
+        with open("last_response.txt", "w") as lr:
+            lr.write(phrase)
+        Utils.speak_phrase(self.speech_config, phrase)

@@ -1,6 +1,5 @@
 {
     "wake_words": [
-        "iota",
-        "eyoda"
+        "iota"
     ]
 }

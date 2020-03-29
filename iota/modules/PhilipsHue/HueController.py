@@ -124,17 +124,18 @@ class HueController(object):
         else:
             bright = self._clamp_brightness(100)
         group = self.get_group_by_name(name).json()
+        if not group["state"]["all_on"]:
+            body = {"on": True, "bri": self._clamp_brightness(bright)}
+            requests.put(
+                url=self._build_url(
+                    ["groups", self._get_group_id(name), "action"]
+                ),
+                data=json.dumps(body)
+            )
         for light_id in group["lights"]:
             resp = self._set_light_bright(light_id, bright)
             if resp.status_code != 200:
                 print(f"ERROR: Couldn't access Light {light_id}")
-        body = {"on": True, "bri": self._clamp_brightness(bright)}
-        return requests.put(
-            url=self._build_url(
-                ["groups", self._get_group_id(name), "action"]
-            ),
-            data=json.dumps(body)
-        )
 
     def turn_off_group(self, name: str) -> requests.Response:
         return requests.put(
