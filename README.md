@@ -2,17 +2,38 @@
 
 _Home Automation using Python_
 
+## Data Privacy Information
+
+This assistant was built to handle wake-word detection entirely offline, using
+Snowboy.  Once it hears the wake word, the microphone will record the first
+"phrase" it hears, where a "phrase" anything up until a relatively short bout of
+"silence" (not counting background audio, which should be mostly ignored).
+
+The service then uses the data streamed from the microphone for that phrase and
+sends the clip to Azure Cognitive Services for speech-to-text translation.
+
+If you want to use this, and do not want to send data to Microsoft, you can opt
+to trade in for a [Microsoft-provided Docker image](https://docs.microsoft.com/en-us/azure/cognitive-services/speech-service/speech-container-howto), which can be hosted locally on
+your own machine, and you can modify the calls to the Azure CogServ in the code
+to instead call to this Docker image instead.  I make no guarantees on the quality
+of translation, as I have not tested it for myself.  Caveat emptor.
+
 ## Dependencies
 
-- gTTS
+- azure-cognitiveservices-speech
 - pyaudio
-- SpeechRecognition
 - word2number
 - wakeonlan (used for Vizio Module)
 
 For all of the above, run:
 
-`python3 -m pip install gTTS pyaudio SpeechRecognition word2number wakeonlan`
+```
+python3 -m pip install \
+    azure-cognitiveservices-speech \
+    pyaudio \
+    word2number \
+    wakeonlan
+```
 
 - For `init_module.py`:
   - Bullet (`python3 -m pip install bullet`)
