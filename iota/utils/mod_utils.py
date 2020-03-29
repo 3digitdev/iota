@@ -70,8 +70,11 @@ def speak_phrase(config, phrase) -> None:
     # self.speech_config.speech_synthesis_voice_name = \
     #     "Microsoft Server Speech Text to Speech Voice (en-AU, Catherine)"
     # Female US (Aria)
+    # config.speech_synthesis_voice_name = \
+    #     "Microsoft Server Speech Text to Speech Voice (en-US, AriaRUS)"
+    # NEURAL Female US (Aria)
     config.speech_synthesis_voice_name = \
-        "Microsoft Server Speech Text to Speech Voice (en-US, AriaRUS)"
+        "Microsoft Server Speech Text to Speech Voice (en-US, AriaNeural)"
     speech_synthesizer = speechsdk.SpeechSynthesizer(speech_config=config)
     # Try to say the response
     result = speech_synthesizer.speak_text_async(phrase).get()
