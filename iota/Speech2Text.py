@@ -57,6 +57,7 @@ class Speech2Text(object):
             decoder_model=os.path.join("iota", "resources", "Iota.pmdl"),
             sensitivity=0.3
         )
+        self.runner = ModuleRunner(self.speech_config)
 
     def listen(self):
         print('Listening... Say "shut down" (or press Ctrl+C) to exit')
@@ -86,10 +87,9 @@ class Speech2Text(object):
         if result.reason == speechsdk.ResultReason.RecognizedSpeech:
             print(f"I heard: {result.text}")
             try:
-                runner = ModuleRunner(self.speech_config)
-                runner.run_module(result.text)
+                self.runner.run_module(result.text)
             except ModuleError as err:
-                pass
+                print(f"Error in {err.module}:  {err.message}")
         elif result.reason == speechsdk.ResultReason.NoMatch:
             print("No speech could be recognized")
         elif result.reason == speechsdk.ResultReason.Canceled:

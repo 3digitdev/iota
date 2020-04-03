@@ -16,7 +16,6 @@
         "shuffle(?: ?(?:my|the)? playlist)? {playlist}(?: playlist)?",
         "play {song} by {artist}",
         "play(?: ?(?:my|the)? playlist)? {playlist}",
-        "play(?:(?: the)? song)? {song}(?: by(?: the artist)? {artist})?",
         "(?:set (?:the )?)?volume(?: to)? {volume}"
     ],
     "unused_commands": [

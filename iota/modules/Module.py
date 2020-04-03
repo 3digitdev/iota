@@ -36,3 +36,13 @@ class Module(object):
 
     def run(self, command: str, regex):
         pass
+
+
+class BackgroundModule(Module):
+    # This callback will be called by the module when it has completed its task
+    def __init__(self, child):
+        self.callback_at_end = None
+        super().__init__(child)
+
+    def set_callback(self, cb):
+        self.callback_at_end = cb

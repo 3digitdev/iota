@@ -72,18 +72,24 @@ class SearchResults(object):
 class GoogleMusicController(object):
     def __init__(self):
         self.device_id = os.environ["GOOGLE_MUSIC_DEVICE_ID"]
-        self.client = Mobileclient()
+        self.client = Mobileclient(debug_logging=False)
         # TODO: change this to relative path from run location
         self.client.oauth_login(Mobileclient.FROM_MAC_ADDRESS, "auth.json")
         self.player_data = Manager().dict()
         self.player = None
+        self.player_pid = None
         self.playlist = Playlist("Now Playing")
+        print("==============================")
+        print("Initializing GMusic Controller")
+        print("==============================")
 
     def _get_entity(self, name: str, type: str, extra_filter=lambda _: True):
         results = self.search(name).__dict__[type]
         if len(results) == 0:
             return None
         results = list(filter(extra_filter, results))
+        if len(results) == 0:
+            return None
         # We will trust Google's ability to filter search results... :P
         return results[0]
 
@@ -126,14 +132,23 @@ class GoogleMusicController(object):
             return self.playlist
         return None
 
-    def play_song(self, name: str, artist: str = "", album: str = ""):
+    def play_song(
+        self, name: str, callback_at_end, artist: str = "", album: str = ""
+    ):
         song = self._get_song(name, artist, album)
         if song is None:
             return f"I couldn't find a song called {name} by {artist}"
-        self.play_playlist("Now Playing", song_list=[song])
+        self.play_playlist("Now Playing", callback_at_end, song_list=[song])
         return ""
 
-    def play_playlist(self, name: str, song_list=[], start=0, shuffle=False):
+    def play_playlist(
+            self,
+            name: str,
+            callback_at_end,
+            song_list=[],
+            start=0,
+            shuffle=False,
+    ) -> str:
         if song_list == []:
             self.playlist = self._get_playlist(name)
             if self.playlist is None:
@@ -143,7 +158,6 @@ class GoogleMusicController(object):
             self.playlist.set_list(song_list)
         if shuffle:
             self.playlist.shuffle()
-        self.player_data = Manager().dict()
 
         # Embed this so we don't have to pass a bunch of context out
         def get_url(id):
@@ -156,27 +170,33 @@ class GoogleMusicController(object):
         # Spawn a subprocess for the player
         self.player = Process(
             target=spawn_player,
-            args=(get_url, self.playlist, self.player_data, start)
+            args=(
+                get_url,
+                self.playlist,
+                self.player_data,
+                callback_at_end,
+                start
+            )
         )
         self.player.start()
-        return self.playlist.songs
+        self.player_pid = self.player.pid
+        print(f"AFTER:  {self.player}")
+        return None
 
-    def pause(self):
+    def pause_song(self):
         if "pid" in self.player_data.keys():
             psutil.Process(self.player_data["pid"]).send_signal(signal.SIGSTOP)
 
-    def resume(self):
+    def resume_song(self):
         if "pid" in self.player_data.keys():
             psutil.Process(self.player_data["pid"]).send_signal(signal.SIGCONT)
 
     def stop_player(self):
         if "pid" in self.player_data.keys():
             psutil.Process(self.player_data["pid"]).send_signal(signal.SIGSTOP)
-        self.player.terminate()
 
     def next_song(self) -> str:
         if "pid" in self.player_data.keys():
-            print(self.player_data["pid"])
             psutil.Process(self.player_data["pid"]).send_signal(signal.SIGTERM)
 
     def previous_song(self) -> str:
@@ -197,40 +217,13 @@ class GoogleMusicController(object):
         return SearchResults(results)
 
 
-def spawn_player(get_url, playlist, shared, start=0):
+def spawn_player(get_url, playlist, shared, callback_at_end, start=0):
     for index, song in enumerate(playlist.songs, start=start):
         stream_url = get_url(song.id).replace('https', 'http')
-        print(stream_url)
         process = Popen(['mpg123', '--quiet', stream_url])
         shared["pid"] = process.pid
-        print(f"pid:  {shared['pid']}")
         shared["index"] = index
         shared["done"] = False
         process.wait()
     shared["done"] = True
-
-
-def main():
-    gmusic = GoogleMusicController()
-    print([song.id for song in gmusic.play_playlist("funkstep")])
-    # print(gmusic.play_song("i'm good", "griz"))
-    time.sleep(3)
-    gmusic.next_song()
-    time.sleep(3)
-    gmusic.previous_song()
-    # print(gmusic.play_song("i'm good", "griz"))
-    time.sleep(10)
-    # time.sleep(3)
-    # gmusic.pause()
-    # time.sleep(3)
-    # gmusic.resume()
-    # time.sleep(3)
-    # gmusic.next_song()
-    # time.sleep(3)
-    # gmusic.previous_song()
-    # time.sleep(6)
-    # gmusic.stop_player()
-
-
-if __name__ == "__main__":
-    main()
+    callback_at_end()

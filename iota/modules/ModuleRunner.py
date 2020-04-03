@@ -2,14 +2,16 @@ import json
 import os
 import re
 from word2number import w2n
+from multiprocessing import Process
 
-from modules.Module import ModuleError
+from modules.Module import BackgroundModule, ModuleError
 import utils.mod_utils as Utils
 
 
 class ModuleRunner(object):
     __slots__ = [
-        'cmd_map', 'all_commands', 'speech_config', 'speech_synthesizer'
+        'cmd_map', 'all_commands', 'speech_config',
+        'speech_synthesizer', 'singletons', 'processes'
     ]
 
     def __init__(self, speech_cfg):
@@ -17,6 +19,10 @@ class ModuleRunner(object):
         self.cmd_map = {}
         # all valid commands for Iota, for quick lookup
         self.all_commands = []
+        # This is used for tracking running instances so we don't replicate
+        # Also is helpful for Background Modules!
+        self.singletons = {}
+        self.processes = {}
         # Configure Azure Speech Synthesizer
         self.speech_config = speech_cfg
         # Load all Modules
@@ -25,6 +31,7 @@ class ModuleRunner(object):
                 continue
             # open each module folder in turn
             if os.path.isdir(os.path.join("iota", "modules", class_name)):
+                self.singletons[class_name] = None
                 self._load_module(class_name)
 
     def _load_module(self, class_name: str):
@@ -55,13 +62,14 @@ class ModuleRunner(object):
 
     def run_module(self, command):
         found = False
-        tmp = []
-        for word in command.split(" "):
-            try:
-                tmp.append(str(w2n.word_to_num(word)))
-            except ValueError:
-                tmp.append(word)
-        command = " ".join(tmp).rstrip(".!?").lower()
+        # tmp = []
+        # for word in command.split(" "):
+        #     try:
+        #         tmp.append(str(w2n.word_to_num(word)))
+        #     except ValueError:
+        #         tmp.append(word)
+        # command = " ".join(tmp).rstrip(".!?").lower()
+        command = command.rstrip(".!?").lower()
         if not any([re.match(reg, command) for reg in self.all_commands]):
             # The command doesn't match any valid commands Iota knows
             return None
@@ -71,25 +79,63 @@ class ModuleRunner(object):
                 if re.match(regex, command):
                     # We found the Module/command that matches
                     found = True
-                    print(f"    MATCHED for {name}:")
-                    print(f"      {regex}")
                     try:
-                        # Dynamically import the Module
-                        exec(f"from modules.{name}.{name} import {name}")
-                        # Instantiate the Module
-                        module = eval(f"{name}()")
-                        response = module.run(command, regex)
-                        # Modules that talk back should return the response str
-                        if response is not None and response != "":
-                            print(f"RESPONSE:  {response}")
-                            self._say(response)
+                        self._spawn_module(name, command, regex)
                     except ModuleError:
                         raise
                     break
             if found:
                 break
 
+    def _spawn_module(self, name, command, regex):
+        print(f"    MATCHED for {name}:")
+        print(f"      {regex}")
+        try:
+            # Dynamically import the Module
+            exec(f"from modules.{name}.{name} import {name}")
+            module = self.singletons[name]
+            if module is None:
+                print(f"{name} was not in singletons!")
+                # Instantiate the Module
+                module = eval(f"{name}()")
+                self.singletons[name] = module
+            # For BackgroundModules, we need to clear them
+            if isinstance(module, BackgroundModule):
+                print(f"{name} is a BackgroundModule")
+                module.set_callback(
+                    lambda r=None: self._delist_module(name, r)
+                )
+                print(f"callback:  {module.callback_at_end}")
+                self.processes[name] = Process(
+                    target=module.run, args=(command, regex)
+                )
+                self.processes[name].start()
+                print("==============================")
+                print(f"SINGLETON:  {self.singletons[name]}")
+                print(f"PLAYER:  {self.singletons[name].gmusic.player}")
+                print(f"PID:  {self.singletons[name].gmusic.player_pid}")
+                print("==============================")
+            else:
+                print(f"{name} is a normal Module")
+                response = module.run(command, regex)
+                print("Done with normal module")
+                self._delist_module(name, response)
+        except ModuleError:
+            self.singletons[name] = None
+            raise
+
     def _say(self, phrase):
         with open("last_response.txt", "w") as lr:
             lr.write(phrase)
         Utils.speak_phrase(self.speech_config, phrase)
+
+    def _delist_module(self, module_name, response):
+        print("Inside _delist_module()")
+        if module_name in self.processes.keys():
+            print(f"{module_name} is in processes, terminating")
+            self.processes[module_name].terminate()
+        self.singletons[module_name] = None
+        print(f"Singleton:  {self.singletons[module_name]}")
+        # Modules that talk back should return the response str
+        if response is not None and response != "":
+            self._say(response)
