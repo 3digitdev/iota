@@ -1,6 +1,7 @@
 # Project temp files
 **/*.mp3
 **/*.wav
+last_response.txt
 
 # Ignore google auth file
 auth.json
