@@ -22,7 +22,6 @@ class GoogleMusic(BackgroundModule):
 
     def _pick_action(self, command: str, params: dict) -> str:
         result = ""
-        print(f"Action: {command}  |  Controller: {self.gmusic} | Player: {self.gmusic.player}")
         # Volume
         if params["volume"] == "up":
             return self.volume_up()

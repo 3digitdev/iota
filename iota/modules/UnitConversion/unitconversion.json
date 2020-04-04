@@ -1,0 +1,13 @@
+{
+    "regexes": {
+        "before_unit": ".+",
+        "after_unit": ".+",
+        "before_count": "an?|[\\d,\\.]+",
+        "after_count": "an?|[\\d,\\.]+"
+    },
+    "command_words": [
+        "how many {before_unit} (?:in|and) {after_count} {after_unit}",
+        "how much is {before_count} {before_unit} (?:in|and) {after_unit}",
+        "what is {before_count} {before_unit} (?:in|and) {after_unit}"
+    ]
+}

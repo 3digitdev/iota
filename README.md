@@ -24,6 +24,7 @@ of translation, as I have not tested it for myself.  Caveat emptor.
 - pyaudio
 - word2number
 - wakeonlan (used for Vizio Module)
+- pint (used for UnitConversion Module)
 
 For all of the above, run:
 
@@ -32,7 +33,8 @@ python3 -m pip install \
     azure-cognitiveservices-speech \
     pyaudio \
     word2number \
-    wakeonlan
+    wakeonlan \
+    pint
 ```
 
 - For `init_module.py`:
