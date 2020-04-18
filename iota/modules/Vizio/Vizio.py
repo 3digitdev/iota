@@ -25,9 +25,13 @@ class Vizio(Module):
         elif action == "turn off":
             return lambda: vizio.turn_off()
         if params["input"] != "":
-            reg = re.compile(r'hdmi (?:\w+|\d)')
+            reg = re.compile(self.regexes['input'])
             if re.match(reg, params["input"]):
-                num = str(w2n.word_to_num(params["input"].split(' ')[1]))
+                num_str = params["input"].split(' ')[-1]
+                if re.match(r'\d+', num_str):
+                    num = int(num_str)
+                else:
+                    num = str(w2n.word_to_num(params["input"].split(' ')[-1]))
             else:
                 return lambda: None
             return lambda: vizio.switch_input(f"HDMI-{num}")

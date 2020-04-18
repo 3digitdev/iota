@@ -1,11 +1,11 @@
 {
     "regexes": {
         "action": "turn (?:on|off)",
-        "input": "hdmi (?:\\d||\\w+) "
+        "input": "hd[ ]?m[iy] (?:\\d||\\w+)"
     },
     "command_words": [
-        "{action} the tv",
-        "tv to {input}",
+        "{action} (?:the )?tv",
+        "tv (?:to )?{input}",
         "change to {input}",
         "{input}"
     ]

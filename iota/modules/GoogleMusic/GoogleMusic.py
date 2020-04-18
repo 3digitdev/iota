@@ -1,7 +1,6 @@
 import os
 import re
 from word2number import w2n
-import json
 
 from modules.Module import BackgroundModule, ModuleError
 from modules.GoogleMusic.GoogleMusicController import GoogleMusicController
@@ -11,7 +10,6 @@ from utils.mod_utils import get_params
 class GoogleMusic(BackgroundModule):
     def __init__(self):
         super().__init__(self)
-        print("INITIALIZING GOOGLE MUSIC MODULE")
         self.gmusic = GoogleMusicController()
         self.current_volume = 0
         self.set_volume(5)
@@ -83,3 +81,9 @@ class GoogleMusic(BackgroundModule):
 
     def volume_down(self):
         self.set_volume(self.current_volume - 1)
+
+    def pause_if_running(self):
+        self.gmusic.pause_song()
+
+    def resume_if_running(self):
+        self.gmusic.resume_song()

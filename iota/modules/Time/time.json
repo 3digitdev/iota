@@ -1,7 +1,14 @@
 {
+    "regexes": {
+        "increment": "second|minute|hour|day",
+        "duration": ".+"
+    },
     "command_words": [
         "what time is it",
         "what is the time",
-        "what's the time"
+        "what's the time",
+        "(?:stop|cancel) (?:the(?: current)? |my )?(?:alarm|timer)",
+        "(?:set|start) an? (?:timer|alarm) for {duration} {increment}s?",
+        "start an? {duration} {increment}s? (?:timer|alarm)"
     ]
 }

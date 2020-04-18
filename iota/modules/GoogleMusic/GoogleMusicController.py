@@ -1,5 +1,3 @@
-import time
-import json
 import signal
 import random
 import os
@@ -79,9 +77,6 @@ class GoogleMusicController(object):
         self.player = None
         self.player_pid = None
         self.playlist = Playlist("Now Playing")
-        print("==============================")
-        print("Initializing GMusic Controller")
-        print("==============================")
 
     def _get_entity(self, name: str, type: str, extra_filter=lambda _: True):
         results = self.search(name).__dict__[type]
@@ -123,7 +118,12 @@ class GoogleMusicController(object):
 
     def _get_playlist(self, name: str) -> Playlist:
         playlists = self.client.get_all_user_playlist_contents()
-        matched_playlists = [p for p in playlists if name in p["name"].lower()]
+        matched_playlists = []
+        for p in playlists:
+            p_name = p["name"].lower()
+            if p_name == name or p_name == name.replace(' ', ''):
+                matched_playlists.append(p)
+        # matched_playlists = [p for p in playlists if name in p["name"].lower()]
         if len(matched_playlists) > 0:
             found = matched_playlists[0]
             self.playlist = Playlist(found["name"])
@@ -180,7 +180,6 @@ class GoogleMusicController(object):
         )
         self.player.start()
         self.player_pid = self.player.pid
-        print(f"AFTER:  {self.player}")
         return None
 
     def pause_song(self):
@@ -194,6 +193,7 @@ class GoogleMusicController(object):
     def stop_player(self):
         if "pid" in self.player_data.keys():
             psutil.Process(self.player_data["pid"]).send_signal(signal.SIGSTOP)
+        self.player.terminate()
 
     def next_song(self) -> str:
         if "pid" in self.player_data.keys():
@@ -206,7 +206,9 @@ class GoogleMusicController(object):
         idx = idx - 1 if idx > 0 else 0
         if not self.player_data["done"]:
             self.stop_player()
-        self.play_playlist(self.playlist.name, self.playlist.songs, start=idx)
+        self.play_playlist(
+            self.playlist.name.lower(), self.playlist.songs, start=idx
+        )
         return ""
 
     def start_over(self):

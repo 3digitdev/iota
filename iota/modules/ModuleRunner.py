@@ -1,7 +1,11 @@
 import json
 import os
 import re
-from multiprocessing import Process
+import importlib
+import psutil
+import signal
+from multiprocessing import Process, Manager
+from subprocess import Popen
 
 from modules.Module import BackgroundModule, ModuleError
 import utils.mod_utils as Utils
@@ -10,7 +14,7 @@ import utils.mod_utils as Utils
 class ModuleRunner(object):
     __slots__ = [
         'cmd_map', 'all_commands', 'speech_config',
-        'speech_synthesizer', 'singletons', 'processes'
+        'speech_synthesizer', 'singletons', 'player', 'player_data'
     ]
 
     def __init__(self, speech_cfg):
@@ -21,7 +25,9 @@ class ModuleRunner(object):
         # This is used for tracking running instances so we don't replicate
         # Also is helpful for Background Modules!
         self.singletons = {}
-        self.processes = {}
+        # Playing mp3 stuff
+        self.player = None
+        self.player_data = Manager().dict()
         # Configure Azure Speech Synthesizer
         self.speech_config = speech_cfg
         # Load all Modules
@@ -61,14 +67,11 @@ class ModuleRunner(object):
 
     def run_module(self, command):
         found = False
-        # tmp = []
-        # for word in command.split(" "):
-        #     try:
-        #         tmp.append(str(w2n.word_to_num(word)))
-        #     except ValueError:
-        #         tmp.append(word)
-        # command = " ".join(tmp).rstrip(".!?").lower()
         command = command.rstrip(".!?").lower()
+        print(f'Command = {command}')
+        if command == "stop" and self._mp3_is_running():
+            self._stop_mp3()
+            return None
         if not any([re.match(reg, command) for reg in self.all_commands]):
             # The command doesn't match any valid commands Iota knows
             return None
@@ -91,22 +94,21 @@ class ModuleRunner(object):
         print(f"      {regex}")
         try:
             # Dynamically import the Module
-            exec(f"from modules.{name}.{name} import {name}")
+            mod_class = getattr(
+                importlib.import_module(f"modules.{name}.{name}"), name
+            )
             module = self.singletons[name]
             if module is None:
                 # Instantiate the Module
-                module = eval(f"{name}()")
+                module = mod_class()
                 self.singletons[name] = module
             # For BackgroundModules, we need to clear them
             if isinstance(module, BackgroundModule):
+                print("IS BACKROUND")
                 module.set_callback(
                     lambda r=None: self._delist_module(name, r)
                 )
-                print(f"callback:  {module.callback_at_end}")
-                self.processes[name] = Process(
-                    target=module.run, args=(command, regex)
-                )
-                self.processes[name].start()
+                module.run(command, regex)
             else:
                 response = module.run(command, regex)
                 self._delist_module(name, response)
@@ -114,15 +116,51 @@ class ModuleRunner(object):
             self.singletons[name] = None
             raise
 
+    def _mp3_is_running(self):
+        return "pid" in self.player_data.keys()
+
+    def _stop_mp3(self):
+        if self._mp3_is_running():
+            psutil.Process(self.player_data["pid"]).send_signal(signal.SIGTERM)
+        self.player_data = Manager().dict()
+        self.resume_music()
+
     def _say(self, phrase):
+        if ".mp3" in phrase:
+            self.pause_music()
+            # play mp3 file on repeat
+            self.player = Process(
+                target=_play_mp3,
+                args=(self.player_data, phrase)
+            )
+            self.player.start()
+            return
         with open("last_response.txt", "w") as lr:
             lr.write(phrase)
         Utils.speak_phrase(self.speech_config, phrase)
 
     def _delist_module(self, module_name, response):
-        if module_name in self.processes.keys():
-            self.processes[module_name].terminate()
+        print("INSIDE DELIST")
         self.singletons[module_name] = None
         # Modules that talk back should return the response str
         if response is not None and response != "":
             self._say(response)
+
+    def pause_music(self):
+        print(self.singletons.keys())
+        print(self.singletons['GoogleMusic'])
+        if self.singletons['GoogleMusic'] is None:
+            return
+        self.singletons['GoogleMusic'].pause_if_running()
+
+    def resume_music(self):
+        if self.singletons['GoogleMusic'] is None:
+            return
+        self.singletons['GoogleMusic'].resume_if_running()
+
+
+def _play_mp3(shared, filename: str):
+    file_path = os.path.join("iota", "resources", filename)
+    process = Popen(['mpg123', '--quiet', '-Z', file_path])
+    shared['pid'] = process.pid
+    process.wait()

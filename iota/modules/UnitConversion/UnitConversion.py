@@ -21,8 +21,8 @@ class UnitConversion(Module):
         before_unit = self._strip_degrees(params['before_unit'])
         after_unit = self._strip_degrees(params['after_unit'])
         try:
-            before = self.unit_reg[before_unit]
-            after = self.unit_reg[after_unit]
+            before = self.unit_reg(before_unit)
+            after = self.unit_reg(after_unit)
             if params['after_count'] != '':
                 return self._convert(after, before, params['after_count'])
             elif params['before_count'] != '':
@@ -48,6 +48,7 @@ class UnitConversion(Module):
             if plural:
                 return f'{parts[0]}s {parts[1]}'
             return " ".join(parts)
+        return units
 
     def _convert(self, first, second, value):
         value = value.replace(',', '')

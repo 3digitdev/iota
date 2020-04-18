@@ -15,6 +15,7 @@
         "start ?(?:(?:the )?(?:song|playlist))? over",
         "shuffle(?: ?(?:my|the)? playlist)? {playlist}(?: playlist)?",
         "play {song} by {artist}",
+        "play(?: my)? {playlist} playlist",
         "play(?: ?(?:my|the)? playlist)? {playlist}",
         "(?:set (?:the )?)?volume(?: to)? {volume}"
     ],
