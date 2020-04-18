@@ -16,8 +16,8 @@ from modules.ModuleRunner import ModuleRunner
 from modules.Module import ModuleError
 
 interrupted = False
-AZURE_KEY = os.environ["AZURE_KEY"]
-AZURE_REGION = os.environ["AZURE_REGION"]
+AZURE_KEY = os.environ['AZURE_KEY']
+AZURE_REGION = os.environ['AZURE_REGION']
 
 
 def signal_handler(signal, frame):
@@ -36,7 +36,7 @@ class PhraseResult(object):
     def __init__(self):
         self.succeeded = False
         self.error_msg = None
-        self.phrase = ""
+        self.phrase = ''
 
     def store_phrase(self, phrase):
         self.succeeded = True
@@ -54,13 +54,13 @@ class Speech2Text(object):
             region=AZURE_REGION
         )
         self.detector = snowboydecoder.HotwordDetector(
-            decoder_model=os.path.join("iota", "resources", "Iota.pmdl"),
+            decoder_model=os.path.join('iota', 'resources', 'Iota.pmdl'),
             sensitivity=0.3
         )
         self.runner = ModuleRunner(self.speech_config)
 
     def listen(self):
-        print('Listening... Say "shut down" (or press Ctrl+C) to exit')
+        print('Listening...')
         # main loop
         self.detector.start(
             # Function to call when we detect the wake word
@@ -75,7 +75,7 @@ class Speech2Text(object):
         self.detector.terminate()
 
     def detected_wake_word(self):
-        """performs one-shot speech recognition from the default microphone"""
+        '''performs one-shot speech recognition from the default microphone'''
         # Creates a speech recognizer using microphone as audio input.
         # The default language is "en-us".
         speech_recognizer = speechsdk.SpeechRecognizer(
@@ -85,15 +85,15 @@ class Speech2Text(object):
         result = speech_recognizer.recognize_once()
         # Check the result
         if result.reason == speechsdk.ResultReason.RecognizedSpeech:
-            print(f"I heard: {result.text}")
+            print(f'I heard: "{result.text}"')
             try:
                 self.runner.run_module(result.text)
             except ModuleError as err:
-                print(f"Error in {err.module}:  {err.message}")
+                print(f'Error in {err.module}:  {err.message}')
         elif result.reason == speechsdk.ResultReason.NoMatch:
-            print("No speech could be recognized")
+            print('No speech could be recognized')
         elif result.reason == speechsdk.ResultReason.Canceled:
             error = result.cancellation_details
-            print(f"Cancelled: {error.reason}")
+            print(f'Cancelled: {error.reason}')
             if error.reason == speechsdk.CancellationReason.Error:
-                print(f"Error: {error.error_details}")
+                print(f'Error: {error.error_details}')

@@ -39,24 +39,24 @@ def no_alsa_error():
 
 
 class RingBuffer(object):
-    """Ring buffer to hold audio from PortAudio"""
+    '''Ring buffer to hold audio from PortAudio'''
 
     def __init__(self, size=4096):
         self._buf = collections.deque(maxlen=size)
 
     def extend(self, data):
-        """Adds data to the end of buffer"""
+        '''Adds data to the end of buffer'''
         self._buf.extend(data)
 
     def get(self):
-        """Retrieves data from the beginning of buffer and clears it"""
+        '''Retrieves data from the beginning of buffer and clears it'''
         tmp = bytes(bytearray(self._buf))
         self._buf.clear()
         return tmp
 
 
 class HotwordDetector(object):
-    """
+    '''
     Snowboy decoder to detect whether a keyword specified by `decoder_model`
     exists in a microphone input stream.
 
@@ -68,7 +68,7 @@ class HotwordDetector(object):
                               default sensitivity in the model will be used.
     :param audio_gain: multiply input volume by this factor.
     :param apply_frontend: applies the frontend processing algorithm if True.
-    """
+    '''
 
     def __init__(self, decoder_model,
                  resource=RESOURCE_FILE,
@@ -109,7 +109,7 @@ class HotwordDetector(object):
               audio_recorder_callback=None,
               silent_count_threshold=15,
               recording_timeout=100):
-        """
+        '''
         Start the voice detector. For every `sleep_time` second it checks the
         audio buffer for triggering keywords. If detected, then call
         corresponding function in `detected_callback`, which can be a single
@@ -134,7 +134,7 @@ class HotwordDetector(object):
                                        being recorded.
         :param recording_timeout: limits the maximum length of a recording.
         :return: None
-        """
+        '''
         self._running = True
 
         def audio_callback(in_data, frame_count, time_info, status):
@@ -234,9 +234,9 @@ class HotwordDetector(object):
         logger.debug("finished.")
 
     def saveMessage(self):
-        """
+        '''
         Save the message stored in self.recordedData to a timestamped file.
-        """
+        '''
         filename = 'last_command.wav'
         data = b''.join(self.recordedData)
 
@@ -253,10 +253,10 @@ class HotwordDetector(object):
         return filename
 
     def terminate(self):
-        """
+        '''
         Terminate audio stream. Users can call start() again to detect.
         :return: None
-        """
+        '''
         self.stream_in.stop_stream()
         self.stream_in.close()
         self.audio.terminate()

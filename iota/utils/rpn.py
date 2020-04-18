@@ -2,49 +2,49 @@ import re
 
 
 class RPNCalculator(object):
-    def __init__(self, operands_reg="\\d+"):
+    def __init__(self, operands_reg='\\d+'):
         self.ors_reg = re.compile(r'(?:times|x|\*|divided by|\/|mod(?:ul(?:o|us))?|\%|plus|\+|minus|\-|to the power of|\^)')
         self.ands_reg = re.compile(operands_reg)
 
     def _get_operator(self, op: str):
         op_map = {
-            "+": {
-                "others": ["plus"],
-                "fn": lambda x, y: x + y
+            '+': {
+                'others': ['plus'],
+                'fn': lambda x, y: x + y
             },
-            "-": {
-                "others": ["minus"],
-                "fn": lambda x, y: x - y
+            '-': {
+                'others': ['minus'],
+                'fn': lambda x, y: x - y
             },
-            "*": {
-                "others": ["times", "x"],
-                "fn": lambda x, y: x * y
+            '*': {
+                'others': ['times', 'x'],
+                'fn': lambda x, y: x * y
             },
-            "/": {
-                "others": ["divided by"],
-                "fn": lambda x, y: x / y
+            '/': {
+                'others': ['divided by'],
+                'fn': lambda x, y: x / y
             },
-            "%": {
-                "others": ["mod", "modulo"],
-                "fn": lambda x, y: x % y
+            '%': {
+                'others': ['mod', 'modulo'],
+                'fn': lambda x, y: x % y
             },
-            "^": {
-                "others": ["**", "to the power of"],
-                "fn": lambda x, y: x ** y
+            '^': {
+                'others': ['**', 'to the power of'],
+                'fn': lambda x, y: x ** y
             }
         }
         for k, v in op_map.items():
-            if op == k or op in v["others"]:
-                return v["fn"]
+            if op == k or op in v['others']:
+                return v['fn']
         return None
 
     def _pemdas(self, op: str) -> int:
-        add = ["plus", "+"]
-        sub = ["minus", "-"]
-        mult = ["times", "x", "*"]
-        div = ["divided by", "/"]
-        mod = ["mod", "modulo", "%"]
-        exp = ["to the power of", "^"]
+        add = ['plus', '+']
+        sub = ['minus', '-']
+        mult = ['times', 'x', '*']
+        div = ['divided by', '/']
+        mod = ['mod', 'modulo', '%']
+        exp = ['to the power of', '^']
         if op in [*add, *sub]:
             return 1
         elif op in [*mult, *div, *mod]:
@@ -60,7 +60,7 @@ class RPNCalculator(object):
         operators = re.findall(self.ors_reg, expression)
         operands = re.findall(self.ands_reg, expression)
         postfix = []
-        stack = ["#"]
+        stack = ['#']
         for i, operand in enumerate(operands):
             postfix.append(operand)
             if i == len(operators):
@@ -69,11 +69,11 @@ class RPNCalculator(object):
             if self._pemdas(op) > self._pemdas(self._peek(stack)):
                 stack.append(op)
             else:
-                while self._peek(stack) != "#" and \
+                while self._peek(stack) != '#' and \
                         (self._pemdas(op) <= self._pemdas(self._peek(stack))):
                     postfix.append(stack.pop())
                 stack.append(op)
-        while self._peek(stack) != "#":
+        while self._peek(stack) != '#':
             postfix.append(stack.pop())
         return postfix
 

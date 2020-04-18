@@ -19,62 +19,66 @@ class GoogleMusic(BackgroundModule):
         return self._pick_action(command, params)
 
     def _pick_action(self, command: str, params: dict) -> str:
-        result = ""
+        result = ''
         # Volume
-        if params["volume"] == "up":
+        if params['volume'] == 'up':
             return self.volume_up()
-        elif params["volume"] == "down":
+        elif params['volume'] == 'down':
             return self.volume_down()
-        elif params["volume"] != "":
-            return self.set_volume(w2n.word_to_num(params["volume"]))
+        elif params['volume'] != '':
+            return self.set_volume(w2n.word_to_num(params['volume']))
         # Song Control
-        if command.startswith("pause"):
+        if command.startswith('pause'):
             return self.gmusic.pause_song()
-        if command.startswith("stop"):
+        if command.startswith('stop'):
             return self.gmusic.stop_player()
-        if params["direction"] == "next":
+        if params['direction'] == 'next':
             return self.gmusic.next_song()
-        if params["direction"] == "previous":
+        if params['direction'] == 'previous':
             return self.gmusic.previous_song()
-        if command.startswith("start") and command.endswith("over"):
-            return self.gmusic.start_over("song" not in command)
+        if command.startswith('start') and command.endswith('over'):
+            return self.gmusic.start_over('song' not in command)
         # Playing songs
         if re.match(r'play ?(?:music|song)?$', command):
             return self.gmusic.resume_song()
-        if params["playlist"] != "":
+        if params['playlist'] != '':
             if self.callback_at_end is None:
-                raise ModuleError("GoogleMusic", "You didn't set the callback")
+                raise ModuleError(
+                    'GoogleMusic', 'You didn\'t set the callback'
+                )
             result = self.gmusic.play_playlist(
-                params["playlist"],
+                params['playlist'],
                 self.callback_at_end,
-                shuffle=command.startswith("shuffle"),
+                shuffle=command.startswith('shuffle'),
             )
             if result is not None:
                 return result
-        if params["song"] != "":
+        if params['song'] != '':
             if self.callback_at_end is None:
-                raise ModuleError("GoogleMusic", "You didn't set the callback")
+                raise ModuleError(
+                    'GoogleMusic', 'You didn\'t set the callback'
+                )
             result = self.gmusic.play_song(
-                params["song"],
+                params['song'],
                 self.callback_at_end,
-                params["artist"],
-                params["album"]
+                params['artist'],
+                params['album']
             )
             if result is not None:
                 return result
         # Disabled because gmusicapi doesn't return album songlists
-        # elif params["album"] != "":
-        #     album = self.gmusic.get_album(params["album"], params["artist"])
+        # elif params['album'] != '':
+        #     album = self.gmusic.get_album(params['album'], params['artist'])
         # Disabled because gmusicapi doesn't return the artist albums
-        # elif params["artist"] != "":
-        #     artist = self.gmusic.get_artist(params["artist"])
+        # elif params['artist'] != '':
+        #     artist = self.gmusic.get_artist(params['artist'])
         return result
 
     def set_volume(self, volume: int):
         volume = max(0, min(volume, 10))
         self.current_volume = volume
         # Only works in Linux/Unix!
-        os.system(f"amixer sset 'Master' {volume}0%")
+        os.system(f'amixer sset "Master" {volume}0%')
 
     def volume_up(self):
         self.set_volume(self.current_volume + 1)

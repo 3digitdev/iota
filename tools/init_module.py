@@ -6,15 +6,13 @@ from bullet import VerticalPrompt, Input
 
 
 def build_config(name: str, command: str, path: str):
-    config = {
-        "command_words": [command.lower().rstrip("?")]
-    }
-    with open(os.path.join(path, f"{name.lower()}.json"), "w") as cfg:
+    config = {'command_words': [command.lower().rstrip('?')]}
+    with open(os.path.join(path, f'{name.lower()}.json'), 'w') as cfg:
         json.dump(config, cfg, indent=4)
 
 
 def build_module(name: str, path: str):
-    contents = f"""from modules.Module import Module
+    contents = f'''from modules.Module import Module
 
 
 class {name}(Module):
@@ -23,8 +21,8 @@ class {name}(Module):
 
     def run(self, command: str, regex) -> str:
         pass
-"""
-    with open(os.path.join(path, f"{name}.py"), "w") as mod:
+'''
+    with open(os.path.join(path, f'{name}.py'), 'w') as mod:
         mod.write(contents)
 
 

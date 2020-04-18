@@ -31,28 +31,28 @@ class ModuleRunner(object):
         # Configure Azure Speech Synthesizer
         self.speech_config = speech_cfg
         # Load all Modules
-        for class_name in os.listdir(os.path.join("iota", "modules")):
-            if class_name == "__pycache__":
+        for class_name in os.listdir(os.path.join('iota', 'modules')):
+            if class_name == '__pycache__':
                 continue
             # open each module folder in turn
-            if os.path.isdir(os.path.join("iota", "modules", class_name)):
+            if os.path.isdir(os.path.join('iota', 'modules', class_name)):
                 self.singletons[class_name] = None
                 self._load_module(class_name)
 
     def _load_module(self, class_name: str):
         # Load the module and its commands into memory
-        cfg_file = f"{class_name.lower()}.json"
+        cfg_file = f'{class_name.lower()}.json'
         cfg_path = os.path.join(
-            "iota", "modules", class_name, cfg_file
+            'iota', 'modules', class_name, cfg_file
         )
         try:
-            with open(cfg_path, "r") as cfg:
+            with open(cfg_path, 'r') as cfg:
                 config = json.load(cfg)
             # quick schema check
-            if "command_words" not in config.keys():
+            if 'command_words' not in config.keys():
                 raise ModuleError(
                     class_name,
-                    "Improperly formatted config: No command words"
+                    'Improperly formatted config: No command words'
                 )
             # store the processed regexes here as well for quick lookup
             command_regexes = Utils.parse_to_regexes(config)
@@ -61,15 +61,14 @@ class ModuleRunner(object):
         except json.JSONDecodeError as err:
             raise ModuleError(
                 class_name,
-                f"Improperly formatted config: Invalid JSON",
-                inner=f"{err.msg} (Line {err.lineno})"
+                f'Improperly formatted config: Invalid JSON',
+                inner=f'{err.msg} (Line {err.lineno})'
             )
 
     def run_module(self, command):
         found = False
-        command = command.rstrip(".!?").lower()
-        print(f'Command = {command}')
-        if command == "stop" and self._mp3_is_running():
+        command = command.rstrip('.!?').lower()
+        if command == 'stop' and self._mp3_is_running():
             self._stop_mp3()
             return None
         if not any([re.match(reg, command) for reg in self.all_commands]):
@@ -90,12 +89,10 @@ class ModuleRunner(object):
                 break
 
     def _spawn_module(self, name, command, regex):
-        print(f"    MATCHED for {name}:")
-        print(f"      {regex}")
         try:
             # Dynamically import the Module
             mod_class = getattr(
-                importlib.import_module(f"modules.{name}.{name}"), name
+                importlib.import_module(f'modules.{name}.{name}'), name
             )
             module = self.singletons[name]
             if module is None:
@@ -104,7 +101,6 @@ class ModuleRunner(object):
                 self.singletons[name] = module
             # For BackgroundModules, we need to clear them
             if isinstance(module, BackgroundModule):
-                print("IS BACKROUND")
                 module.set_callback(
                     lambda r=None: self._delist_module(name, r)
                 )
@@ -117,16 +113,16 @@ class ModuleRunner(object):
             raise
 
     def _mp3_is_running(self):
-        return "pid" in self.player_data.keys()
+        return 'pid' in self.player_data.keys()
 
     def _stop_mp3(self):
         if self._mp3_is_running():
-            psutil.Process(self.player_data["pid"]).send_signal(signal.SIGTERM)
+            psutil.Process(self.player_data['pid']).send_signal(signal.SIGTERM)
         self.player_data = Manager().dict()
         self.resume_music()
 
     def _say(self, phrase):
-        if ".mp3" in phrase:
+        if '.mp3' in phrase:
             self.pause_music()
             # play mp3 file on repeat
             self.player = Process(
@@ -135,20 +131,17 @@ class ModuleRunner(object):
             )
             self.player.start()
             return
-        with open("last_response.txt", "w") as lr:
+        with open('last_response.txt', 'w') as lr:
             lr.write(phrase)
         Utils.speak_phrase(self.speech_config, phrase)
 
     def _delist_module(self, module_name, response):
-        print("INSIDE DELIST")
         self.singletons[module_name] = None
         # Modules that talk back should return the response str
-        if response is not None and response != "":
+        if response is not None and response != '':
             self._say(response)
 
     def pause_music(self):
-        print(self.singletons.keys())
-        print(self.singletons['GoogleMusic'])
         if self.singletons['GoogleMusic'] is None:
             return
         self.singletons['GoogleMusic'].pause_if_running()
@@ -160,7 +153,7 @@ class ModuleRunner(object):
 
 
 def _play_mp3(shared, filename: str):
-    file_path = os.path.join("iota", "resources", filename)
+    file_path = os.path.join('iota', 'resources', filename)
     process = Popen(['mpg123', '--quiet', '-Z', file_path])
     shared['pid'] = process.pid
     process.wait()

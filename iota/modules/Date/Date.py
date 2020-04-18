@@ -10,16 +10,16 @@ class Date(Module):
     def run(self, command: str, regex) -> str:
         now = datetime.datetime.now()
         day = self._parse_day(now)
-        return "It is {0:%A} {0:%B} {1}, {0:%Y}".format(now, day)
+        return 'It is {0:%A} {0:%B} {1}, {0:%Y}'.format(now, day)
 
     def _parse_day(self, now: datetime.date) -> str:
-        day = f"{now:%d}".lstrip("0")
-        if day.endswith("1"):
-            day = f"{day}st"
-        elif day.endswith("2"):
-            day = f"{day}nd"
-        elif day.endswith("3"):
-            day = f"{day}rd"
+        day = f'{now:%d}'.lstrip('0')
+        if day.endswith('1'):
+            day = f'{day}st'
+        elif day.endswith('2'):
+            day = f'{day}nd'
+        elif day.endswith('3'):
+            day = f'{day}rd'
         else:
-            day = f"{day}th"
+            day = f'{day}th'
         return day

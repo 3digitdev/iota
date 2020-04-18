@@ -2,7 +2,6 @@ import re
 from pint import UnitRegistry
 from pint.errors import \
     UndefinedUnitError, OffsetUnitCalculusError, DimensionalityError
-from word2number.w2n import word_to_num
 
 from modules.Module import Module
 from utils.mod_utils import get_params
@@ -30,8 +29,7 @@ class UnitConversion(Module):
             else:
                 return ''
         except OffsetUnitCalculusError as err:
-            print(err)
-            return f'Conversion Error!'
+            return f'Conversion Error: {err}'
         except UndefinedUnitError as err:
             return f'Undefined unit: {err}'
         except DimensionalityError as err:
@@ -47,7 +45,7 @@ class UnitConversion(Module):
             parts = units.split('_')
             if plural:
                 return f'{parts[0]}s {parts[1]}'
-            return " ".join(parts)
+            return ' '.join(parts)
         return units
 
     def _convert(self, first, second, value):

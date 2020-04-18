@@ -17,7 +17,7 @@ class Iota(object):
             raise
 
     def _read_config(self):
-        with open(os.path.join("iota", "config.json"), "r") as cfg:
+        with open(os.path.join('iota', 'config.json'), 'r') as cfg:
             config = json.load(cfg)
         self.wake_words = config['wake_words']
 
@@ -33,8 +33,8 @@ def main():
         iota = Iota()
         iota.listen()
     except ModuleError as err:
-        print(f"Your {err.module} module has an error:\n  {err.message}")
+        print(f'Your {err.module} module has an error:\n  {err.message}')
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()

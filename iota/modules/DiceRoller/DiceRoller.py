@@ -12,19 +12,19 @@ class DiceRoller(Module):
 
     def run(self, command: str, regex) -> str:
         params = get_params(command, regex, self.regexes.keys())
-        if command == "flip a coin":
-            return random.choice(["heads", "tails"])
-        if command == "roll a dice":
+        if command == 'flip a coin':
+            return random.choice(['heads', 'tails'])
+        if command == 'roll a dice':
             return str(random.randint(1, 6))
         # Dice expression
-        result = self.parse_dice_expression(params["expression"])
+        result = self.parse_dice_expression(params['expression'])
         if float(result).is_integer():
-            return f"{result.split('.')[0]}"
-        return f"{float(result):.6f}"
+            return f'{result.split(".")[0]}'
+        return f'{float(result):.6f}'
 
     def parse_dice_expression(self, expression):
         expression = expression.replace(' ', '')
-        dice_reg = re.compile(self.regexes["dice"])
+        dice_reg = re.compile(self.regexes['dice'])
 
         def calc_if_dice(value):
             match = dice_reg.match(value)
@@ -36,5 +36,5 @@ class DiceRoller(Module):
                 return str(total)
             return value
 
-        rpn_calc = RPNCalculator(operands_reg="\\d*\\s*d?\\s*\\d+")
+        rpn_calc = RPNCalculator(operands_reg='\\d*\\s*d?\\s*\\d+')
         return rpn_calc.calculate(expression, calc_if_dice)
