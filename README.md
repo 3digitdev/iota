@@ -25,6 +25,8 @@ of translation, as I have not tested it for myself.  Caveat emptor.
 - word2number
 - wakeonlan (used for Vizio Module)
 - pint (used for UnitConversion Module)
+- pika (used for the message queue)
+- rabbitmq-server (**Not a Python package, but needed to run app**)
 
 For all of the above, run:
 
@@ -34,7 +36,8 @@ python3 -m pip install \
     pyaudio \
     word2number \
     wakeonlan \
-    pint
+    pint \
+    pika
 ```
 
 - For `init_module.py`:
@@ -72,10 +75,8 @@ From here, you can implement your new Module.  The `run()` function in your modu
 is inherited from the base `Module`, and is called by the `ModuleRunner` if any of your
 commands are matched by the incoming spoken phrase.
 
-If you want your Module to give a spoken response, return the phrase to speak as a string from
-the `run()` function in your Module.  Empty strings and/or `None` return values will result in no
-speech after the Module finishes.
+If you want your Module to give a spoken response, you use the built-in `Module.say()` function
+to speak a phrase as a result.  You can also play a saved mp3 file, throw an error, or just
+"acknowledge" the request (currently a NoOp -- eventually will play a tone)
 
-**For ideas on how to handle parameters on commands, see Vizio or PhilipsHue for examples!**
-
-**Note that the `"regexes"` key will be required in your `.json` file for this!**
+**For ideas on how to handle parameters on commands, see Vizio or PhilipsHue for examples! (Note that the `"regexes"` key will be required in your `.json` file for this!)**
