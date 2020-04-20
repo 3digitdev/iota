@@ -12,12 +12,10 @@ except ImportError:
     import sys
     sys.exit(1)
 
-from modules.ModuleRunner import ModuleRunner
-from modules.Module import ModuleError
+from modules.Module import Module
+import utils.mod_utils as Utils
 
 interrupted = False
-AZURE_KEY = os.environ['AZURE_KEY']
-AZURE_REGION = os.environ['AZURE_REGION']
 
 
 def signal_handler(signal, frame):
@@ -47,17 +45,13 @@ class PhraseResult(object):
         self.error_msg = error
 
 
-class Speech2Text(object):
-    def __init__(self, wake_words: list):
-        self.speech_config = speechsdk.SpeechConfig(
-            subscription=AZURE_KEY,
-            region=AZURE_REGION
-        )
+class Speech2Text(Module):
+    def __init__(self):
         self.detector = snowboydecoder.HotwordDetector(
             decoder_model=os.path.join('iota', 'resources', 'Iota.pmdl'),
             sensitivity=0.3
         )
-        self.runner = ModuleRunner(self.speech_config)
+        self._setup_mq()
 
     def listen(self):
         print('Listening...')
@@ -79,21 +73,22 @@ class Speech2Text(object):
         # Creates a speech recognizer using microphone as audio input.
         # The default language is "en-us".
         speech_recognizer = speechsdk.SpeechRecognizer(
-            speech_config=self.speech_config
+            speech_config=Utils.SPEECH_CONFIG
         )
         # Listen for a phrase from the microphone
         result = speech_recognizer.recognize_once()
         # Check the result
         if result.reason == speechsdk.ResultReason.RecognizedSpeech:
             print(f'I heard: "{result.text}"')
-            try:
-                self.runner.run_module(result.text)
-            except ModuleError as err:
-                print(f'Error in {err.module}:  {err.message}')
+            self.send_response(
+                type='VoiceCommand',
+                response=result.text
+            )
         elif result.reason == speechsdk.ResultReason.NoMatch:
-            print('No speech could be recognized')
+            self.send_error('No speech could be recognized')
         elif result.reason == speechsdk.ResultReason.Canceled:
             error = result.cancellation_details
-            print(f'Cancelled: {error.reason}')
             if error.reason == speechsdk.CancellationReason.Error:
-                print(f'Error: {error.error_details}')
+                self.send_error(f'Cancelled.  Error: {error.error_details}')
+            else:
+                self.send_error(f'Cancelled: {error.reason}')

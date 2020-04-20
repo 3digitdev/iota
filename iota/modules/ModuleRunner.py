@@ -6,9 +6,23 @@ import psutil
 import signal
 from multiprocessing import Process, Manager
 from subprocess import Popen
+try:
+    import azure.cognitiveservices.speech as speechsdk
+except ImportError:
+    print(
+        "Importing the Speech SDK for Python failed."
+        "Refer to"
+        "https://docs.microsoft.com/azure/cognitive-services/speech-service/quickstart-python"
+        "for installation instructions."
+    )
+    import sys
+    sys.exit(1)
 
-from modules.Module import BackgroundModule, ModuleError
+from modules.Module import BackgroundModule
 import utils.mod_utils as Utils
+
+AZURE_KEY = os.environ['AZURE_KEY']
+AZURE_REGION = os.environ['AZURE_REGION']
 
 
 class ModuleRunner(object):
@@ -29,7 +43,10 @@ class ModuleRunner(object):
         self.player = None
         self.player_data = Manager().dict()
         # Configure Azure Speech Synthesizer
-        self.speech_config = speech_cfg
+        self.speech_config = speechsdk.SpeechConfig(
+            subscription=AZURE_KEY,
+            region=AZURE_REGION
+        )
         # Load all Modules
         for class_name in os.listdir(os.path.join('iota', 'modules')):
             if class_name == '__pycache__':
@@ -50,7 +67,7 @@ class ModuleRunner(object):
                 config = json.load(cfg)
             # quick schema check
             if 'command_words' not in config.keys():
-                raise ModuleError(
+                raise Utils.ModuleError(
                     class_name,
                     'Improperly formatted config: No command words'
                 )
@@ -59,7 +76,7 @@ class ModuleRunner(object):
             self.cmd_map[class_name] = command_regexes
             self.all_commands.extend(command_regexes)
         except json.JSONDecodeError as err:
-            raise ModuleError(
+            raise Utils.ModuleError(
                 class_name,
                 f'Improperly formatted config: Invalid JSON',
                 inner=f'{err.msg} (Line {err.lineno})'
@@ -82,7 +99,7 @@ class ModuleRunner(object):
                     found = True
                     try:
                         self._spawn_module(name, command, regex)
-                    except ModuleError:
+                    except Utils.ModuleError:
                         raise
                     break
             if found:
@@ -108,7 +125,7 @@ class ModuleRunner(object):
             else:
                 response = module.run(command, regex)
                 self._delist_module(name, response)
-        except ModuleError:
+        except Utils.ModuleError:
             self.singletons[name] = None
             raise
 

@@ -10,7 +10,7 @@ class Date(Module):
     def run(self, command: str, regex) -> str:
         now = datetime.datetime.now()
         day = self._parse_day(now)
-        return 'It is {0:%A} {0:%B} {1}, {0:%Y}'.format(now, day)
+        self.say('It is {0:%A} {0:%B} {1}, {0:%Y}'.format(now, day))
 
     def _parse_day(self, now: datetime.date) -> str:
         day = f'{now:%d}'.lstrip('0')

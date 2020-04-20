@@ -1,4 +1,6 @@
 import re
+from subprocess import Popen
+from enum import Enum
 try:
     import azure.cognitiveservices.speech as speechsdk
 except ImportError:
@@ -10,6 +12,56 @@ except ImportError:
     )
     import sys
     sys.exit(1)
+
+
+# --- CONSTANTS --- #
+import os
+MQ_EXCHANGE = os.environ['MQ_EXCHANGE']
+MQ_KEY = os.environ['MQ_KEY']
+AZURE_KEY = os.environ['AZURE_KEY']
+AZURE_REGION = os.environ['AZURE_REGION']
+SPEECH_CONFIG = speechsdk.SpeechConfig(
+    subscription=AZURE_KEY,
+    region=AZURE_REGION
+)
+# ----------------- #
+
+
+# --- MODULE STUFF --- #
+class ResponseType():
+    VoiceCommand = 'VoiceCommand',
+    SpokenResponse = 'SpokenResponse',
+    Mp3Response = 'Mp3Response',
+    Acknowledge = 'Acknowledge',
+    ErrorResponse = 'ErrorResponse'
+
+
+class ModuleResponse:
+    __slots__ = ['type', 'data']
+
+    def __init__(self, type: str, data: str):
+        self.type = type
+        self.data = data
+
+    def __str__(self):
+        return f'{self.type}|{self.data}'
+
+    def __bytes__(self):
+        return bytes(str(self), encoding='utf-8')
+
+
+class ModuleError(Exception):
+    def __init__(self, module, message, inner=''):
+        self.module = module
+        self.message = message
+        if inner != '':
+            self.message += f'\n    {inner}'
+# -------------------- #
+
+
+def response_from_str(str):
+    parts = str.decode('utf-8').split('|')
+    return ModuleResponse(parts[0], parts[1])
 
 
 def parse_to_regexes(config: dict) -> list:
@@ -37,35 +89,7 @@ def get_params(command, regex, groups) -> dict:
     return params
 
 
-def process_file(config, filename) -> str:
-    '''
-    performs one-shot speech recognition with input from an audio file
-    Reference:  https://github.com/Azure-Samples/cognitive-services-speech-sdk/blob/master/samples/python/console/speech_sample.py
-    '''
-    audio_config = speechsdk.audio.AudioConfig(filename=filename)
-    # Creates a speech recognizer using a file as audio input.
-    # The default language is "en-us".
-    speech_recognizer = speechsdk.SpeechRecognizer(
-        speech_config=config,
-        audio_config=audio_config
-    )
-    # Process the input
-    result = speech_recognizer.recognize_once()
-    # Check the result
-    if result.reason == speechsdk.ResultReason.RecognizedSpeech:
-        # TODO:  Call out to ModuleRunner!
-        out = result.text
-    elif result.reason == speechsdk.ResultReason.NoMatch:
-        out = f'No speech could be recognized'
-    elif result.reason == speechsdk.ResultReason.Canceled:
-        error = result.cancellation_details
-        out = f'Cancelled: {error.reason}'
-        if error.reason == speechsdk.CancellationReason.Error:
-            out = f'Error: {error.error_details}'
-    return out
-
-
-def speak_phrase(config, phrase) -> None:
+def speak_phrase(phrase) -> None:
     # Female Australian (Catherine)
     # self.speech_config.speech_synthesis_voice_name = \
     #     "Microsoft Server Speech Text to Speech Voice (en-AU, Catherine)"
@@ -73,9 +97,11 @@ def speak_phrase(config, phrase) -> None:
     # config.speech_synthesis_voice_name = \
     #     "Microsoft Server Speech Text to Speech Voice (en-US, AriaRUS)"
     # NEURAL Female US (Aria)
-    config.speech_synthesis_voice_name = \
+    SPEECH_CONFIG.speech_synthesis_voice_name = \
         "Microsoft Server Speech Text to Speech Voice (en-US, AriaNeural)"
-    speech_synthesizer = speechsdk.SpeechSynthesizer(speech_config=config)
+    speech_synthesizer = speechsdk.SpeechSynthesizer(
+        speech_config=SPEECH_CONFIG
+    )
     # Try to say the response
     result = speech_synthesizer.speak_text_async(phrase).get()
     # Checks result.
@@ -85,3 +111,10 @@ def speak_phrase(config, phrase) -> None:
         if error.reason == speechsdk.CancellationReason.Error:
             if error.error_details:
                 print(f'Error details: {error.error_details}')
+
+
+def _play_mp3(shared, filename: str):
+    file_path = os.path.join('iota', 'resources', filename)
+    process = Popen(['mpg123', '--quiet', '-Z', file_path])
+    shared['pid'] = process.pid
+    process.wait()

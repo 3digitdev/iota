@@ -9,4 +9,4 @@ class RepeatPhrase(Module):
         last_response = ''
         with open('last_response.txt', 'r') as lr:
             last_response = lr.read()
-        return f'I said: {last_response}'
+        self.say(f'I said: {last_response}')
