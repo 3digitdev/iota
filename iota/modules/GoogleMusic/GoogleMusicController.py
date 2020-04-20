@@ -138,7 +138,6 @@ class GoogleMusicController(object):
         if song is None:
             return f'I couldn\'t find a song called {name} by {artist}'
         self.play_playlist('Now Playing', callback_at_end, song_list=[song])
-        return ''
 
     def play_playlist(
             self,
@@ -192,7 +191,7 @@ class GoogleMusicController(object):
     def stop_player(self):
         if 'pid' in self.player_data.keys():
             psutil.Process(self.player_data['pid']).send_signal(signal.SIGSTOP)
-        self.player.terminate()
+        # self.player.terminate()
 
     def next_song(self) -> str:
         if 'pid' in self.player_data.keys():

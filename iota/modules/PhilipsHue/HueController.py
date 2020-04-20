@@ -32,13 +32,13 @@ class HueController(object):
     def _init_states(self):
         groups = self.get_groups()
         if groups.status_code != 200:
-            print(f'Cannot reach Hue bridge at {self._build_url(['groups'])}')
+            print(f'Cannot reach Hue bridge at {self._build_url(["groups"])}')
             exit(1)
         for id, group in groups.json().items():
             self.group_map[group['name']] = id
         lights = self.get_lights()
         if lights.status_code != 200:
-            print(f'Cannot reach Hue bridge at {self._build_url(['lights'])}')
+            print(f'Cannot reach Hue bridge at {self._build_url(["lights"])}')
             exit(1)
         for id, light in lights.json().items():
             self.light_map[light['name']] = id
@@ -135,7 +135,7 @@ class HueController(object):
         for light_id in group['lights']:
             resp = self._set_light_bright(light_id, bright)
             if resp.status_code != 200:
-                print(f'ERROR: Couldn't access Light {light_id}')
+                print(f'ERROR: Could not access Light {light_id}')
 
     def turn_off_group(self, name: str) -> requests.Response:
         return requests.put(

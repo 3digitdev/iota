@@ -2,7 +2,7 @@ import datetime
 from word2number import w2n
 from multiprocessing import Process, Event, Manager
 
-from modules.Module import BackgroundModule
+from modules.Module import Module
 from utils.mod_utils import get_params
 
 
@@ -23,7 +23,7 @@ class Timer(Process):
         self.finished.set()
 
 
-class Time(BackgroundModule):
+class Time(Module):
     def __init__(self):
         super().__init__(self)
         self.timer = None
@@ -35,22 +35,22 @@ class Time(BackgroundModule):
             if 'stop' in command or 'cancel' in command:
                 if self.timer is not None:
                     self.timer.cancel()
-                    return self.callback_at_end('Timer has been cancelled')
+                    return self.say('Timer has been cancelled')
                 else:
-                    return self.callback_at_end('No timer has been set')
+                    return self.say('No timer has been set')
             now = datetime.datetime.now()
-            return self.callback_at_end(
-                'It is {0:%I}:{0:%M} {0:%p}'.format(now)
-            )
+            self.say('It is {0:%I}:{0:%M} {0:%p}'.format(now))
+            return
         duration = params['duration']
         increment = params['increment']
         if any([v == '' for v in [duration, increment]]):
             # They forgot one or both of the parameters
-            return self.callback_at_end('')
+            return
         if self.timer is not None:
-            return self.callback_at_end('You already have a timer set')
+            return self.say('You already have a timer set')
         seconds = self._to_seconds(w2n.word_to_num(duration), increment)
         self._spawn_timer(seconds)
+        self.say('Timer set')
 
     def _to_seconds(self, duration: float, increment: str) -> int:
         result = {
@@ -63,5 +63,5 @@ class Time(BackgroundModule):
         return int(round(result)) - 1
 
     def _spawn_timer(self, seconds: int) -> None:
-        self.timer = Timer(seconds, callback=self.callback_at_end)
+        self.timer = Timer(seconds, callback=self.play_mp3)
         self.timer.start()

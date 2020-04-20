@@ -11,16 +11,20 @@ class DiceRoller(Module):
         super().__init__(self)
 
     def run(self, command: str, regex) -> str:
+        result = None
         params = get_params(command, regex, self.regexes.keys())
         if command == 'flip a coin':
-            return random.choice(['heads', 'tails'])
-        if command == 'roll a dice':
-            return str(random.randint(1, 6))
-        # Dice expression
-        result = self.parse_dice_expression(params['expression'])
-        if float(result).is_integer():
-            return f'{result.split(".")[0]}'
-        return f'{float(result):.6f}'
+            result = random.choice(['heads', 'tails'])
+        elif command == 'roll a dice':
+            result = str(random.randint(1, 6))
+        else:
+            # Dice expression
+            result = self.parse_dice_expression(params['expression'])
+            if float(result).is_integer():
+                result = f'{result.split(".")[0]}'
+            result = f'{float(result):.6f}'
+        if result is not None:
+            self.say(result)
 
     def parse_dice_expression(self, expression):
         expression = expression.replace(' ', '')

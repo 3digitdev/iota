@@ -12,12 +12,16 @@ class Calculator(Module):
         self.ands_reg = re.compile(self.regexes['operand'])
 
     def run(self, command: str, regex) -> str:
+        result = None
         params = get_params(command, regex, self.regexes.keys())
         expression = params['expression']
         if expression == '':
-            return ''
+            return
         calculator = RPNCalculator()
         value = calculator.calculate(expression)
         if float(value).is_integer():
-            return f'{value.split(".")[0]}'
-        return f'about {float(value):.6f}'
+            result = f'{value.split(".")[0]}'
+        else:
+            result = f'about {float(value):.6f}'
+        if result is not None:
+            self.say(result)

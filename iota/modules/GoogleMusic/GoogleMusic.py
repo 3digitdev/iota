@@ -2,12 +2,12 @@ import os
 import re
 from word2number import w2n
 
-from modules.Module import BackgroundModule, ModuleError
+from modules.Module import Module
 from modules.GoogleMusic.GoogleMusicController import GoogleMusicController
 from utils.mod_utils import get_params
 
 
-class GoogleMusic(BackgroundModule):
+class GoogleMusic(Module):
     def __init__(self):
         super().__init__(self)
         self.gmusic = GoogleMusicController()
@@ -19,7 +19,7 @@ class GoogleMusic(BackgroundModule):
         return self._pick_action(command, params)
 
     def _pick_action(self, command: str, params: dict) -> str:
-        result = ''
+        result = None
         # Volume
         if params['volume'] == 'up':
             return self.volume_up()
@@ -42,37 +42,20 @@ class GoogleMusic(BackgroundModule):
         if re.match(r'play ?(?:music|song)?$', command):
             return self.gmusic.resume_song()
         if params['playlist'] != '':
-            if self.callback_at_end is None:
-                raise ModuleError(
-                    'GoogleMusic', 'You didn\'t set the callback'
-                )
             result = self.gmusic.play_playlist(
                 params['playlist'],
-                self.callback_at_end,
+                lambda: None,
                 shuffle=command.startswith('shuffle'),
             )
-            if result is not None:
-                return result
-        if params['song'] != '':
-            if self.callback_at_end is None:
-                raise ModuleError(
-                    'GoogleMusic', 'You didn\'t set the callback'
-                )
-            result = self.gmusic.play_song(
+        elif params['song'] != '':
+            self.gmusic.play_song(
                 params['song'],
-                self.callback_at_end,
+                lambda: None,
                 params['artist'],
                 params['album']
             )
-            if result is not None:
-                return result
-        # Disabled because gmusicapi doesn't return album songlists
-        # elif params['album'] != '':
-        #     album = self.gmusic.get_album(params['album'], params['artist'])
-        # Disabled because gmusicapi doesn't return the artist albums
-        # elif params['artist'] != '':
-        #     artist = self.gmusic.get_artist(params['artist'])
-        return result
+        if result is not None:
+            self.say(result)
 
     def set_volume(self, volume: int):
         volume = max(0, min(volume, 10))
