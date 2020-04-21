@@ -1,4 +1,5 @@
 import datetime
+import re
 from word2number import w2n
 from multiprocessing import Process, Event, Manager
 
@@ -41,16 +42,48 @@ class Time(Module):
             now = datetime.datetime.now()
             self.say('It is {0:%I}:{0:%M} {0:%p}'.format(now))
             return
-        duration = params['duration']
-        increment = params['increment']
-        if any([v == '' for v in [duration, increment]]):
+        if any([v == '' for v in [params['duration'], params['increment']]]):
             # They forgot one or both of the parameters
             return
         if self.timer is not None:
             return self.say('You already have a timer set')
-        seconds = self._to_seconds(w2n.word_to_num(duration), increment)
+        seconds = self._complex_to_seconds(params)
         self._spawn_timer(seconds)
         self.say('Timer set')
+
+    def _complex_to_seconds(self, params) -> int:
+        primary = {
+            'duration': params['duration'],
+            'increment': params['increment'],
+            'mod': params['increment_mod']
+        }
+        primary_is_complex = primary['mod'] != ''
+        p_duration = self._duration_to_num(primary['duration'])
+        if primary['mod'] == 'half':
+            p_duration *= 1.5
+        elif primary['mod'] == 'quarter':
+            p_duration *= 1.25
+
+        seconds = self._to_seconds(p_duration, primary['increment'])
+        if primary_is_complex:
+            return seconds
+        secondary = {
+            'duration': params['duration2'], 'increment': params['increment2']
+        }
+        tertiary = {
+            'duration': params['duration3'], 'increment': params['increment3']
+        }
+        for param_set in [secondary, tertiary]:
+            if None in param_set.values():
+                break
+            duration = self._duration_to_num(param_set['duration'])
+            seconds += self._to_seconds(duration, param_set['increment'])
+        return seconds
+
+    def _duration_to_num(self, duration: str) -> int:
+        if re.match(r'an?', duration):
+            duration = 'one'
+        return w2n.word_to_num(duration)
 
     def _to_seconds(self, duration: float, increment: str) -> int:
         result = {

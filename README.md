@@ -2,6 +2,26 @@
 
 _Home Automation using Python_
 
+# TODO
+
+- Create method to automatically re-pair with TV [separate command!]
+- Add "acknowledgment" tone to repertoir and utilize it for nonverbal responses
+- Build a Docker Image for running Iota
+  - Learn how to connect external speakers and microphones to a Docker Image
+  - Learn how to automatically update Docker Image from latest release on GitHub
+    - Publish to DockerHub through GitHub Actions?
+- Find Speaker/Microphone to use with RasPi
+  - [Microphone](https://respeaker.io/6_mic_array/)
+  - [Speaker(s)](https://thepihut.com/pages/search-results?q=speaker)
+    - Perhaps just use a nice bluetooth speaker??
+- LONG TERM:  Learn how to make this Docker Image run on a phone??
+
+# Future Module Ideas
+
+- Spotify Module
+- Module for sending slack messages through an iota-bot
+- Module for storing/giving links to common searches (integrate with slackbot)
+
 ## Data Privacy Information
 
 This assistant was built to handle wake-word detection entirely offline, using

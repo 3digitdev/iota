@@ -1,14 +1,20 @@
 {
     "regexes": {
         "increment": "second|minute|hour|day",
-        "duration": ".+"
+        "increment2": "second|minute|hour|day",
+        "increment3": "second|minute|hour|day",
+        "increment_mod": "half|quarter",
+        "duration": "(an?|\\d+)",
+        "duration2": "(an?|\\d+)",
+        "duration3": "(an?|\\d+)"
     },
     "command_words": [
         "what time is it",
         "what is the time",
         "what's the time",
         "(?:stop|cancel) (?:the(?: current)? |my )?(?:alarm|timer)",
-        "(?:set|start) an? (?:timer|alarm) for {duration} {increment}s?",
-        "start an? {duration} {increment}s? (?:timer|alarm)"
+        "(?:set|start) an? (?:timer|alarm) for {duration} {increment}s? (?:and )?{duration2} {increment2}s?(?: (?:and)?{duration3} {increment3}s?)?",
+        "(?:set|start) an? (?:timer|alarm) for {duration} {increment}s? and a {increment_mod}"
+        "start an? {duration} {increment}s? (?:timer|alarm)",
     ]
 }
