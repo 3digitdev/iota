@@ -25,3 +25,4 @@ class Calculator(Module):
             result = f'about {float(value):.6f}'
         if result is not None:
             self.say(result)
+        self.finish_action()

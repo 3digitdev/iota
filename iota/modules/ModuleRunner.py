@@ -115,7 +115,6 @@ class ModuleRunner(object):
             if module is None:
                 # Instantiate the Module
                 module = mod_class()
-                self.singletons[name] = module
             # For BackgroundModules, we need to clear them
             if isinstance(module, BackgroundModule):
                 module.set_callback(

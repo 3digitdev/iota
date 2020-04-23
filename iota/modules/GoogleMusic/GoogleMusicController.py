@@ -137,7 +137,9 @@ class GoogleMusicController(object):
         song = self._get_song(name, artist, album)
         if song is None:
             return f'I couldn\'t find a song called {name} by {artist}'
-        self.play_playlist('Now Playing', callback_at_end, song_list=[song])
+        return self.play_playlist(
+            'Now Playing', callback_at_end, song_list=[song]
+        )
 
     def play_playlist(
             self,

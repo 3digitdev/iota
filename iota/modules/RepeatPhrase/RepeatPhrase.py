@@ -10,3 +10,4 @@ class RepeatPhrase(Module):
         with open('last_response.txt', 'r') as lr:
             last_response = lr.read()
         self.say(f'I said: {last_response}')
+        self.finish_action()

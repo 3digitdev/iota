@@ -25,6 +25,7 @@ class DiceRoller(Module):
             result = f'{float(result):.6f}'
         if result is not None:
             self.say(result)
+        self.finish_action()
 
     def parse_dice_expression(self, expression):
         expression = expression.replace(' ', '')

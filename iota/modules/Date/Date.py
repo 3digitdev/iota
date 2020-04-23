@@ -11,6 +11,7 @@ class Date(Module):
         now = datetime.datetime.now()
         day = self._parse_day(now)
         self.say('It is {0:%A} {0:%B} {1}, {0:%Y}'.format(now, day))
+        self.finish_action()
 
     def _parse_day(self, now: datetime.date) -> str:
         day = f'{now:%d}'.lstrip('0')

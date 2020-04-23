@@ -16,7 +16,8 @@ class GoogleMusic(Module):
 
     def run(self, command: str, regex: str) -> str:
         params = get_params(command, regex, self.regexes.keys())
-        return self._pick_action(command, params)
+        self._pick_action(command, params)
+        self.await_next_command()
 
     def _pick_action(self, command: str, params: dict) -> str:
         result = None
@@ -31,6 +32,7 @@ class GoogleMusic(Module):
         if command.startswith('pause'):
             return self.gmusic.pause_song()
         if command.startswith('stop'):
+            self.finish_action()
             return self.gmusic.stop_player()
         if params['direction'] == 'next':
             return self.gmusic.next_song()
@@ -44,16 +46,18 @@ class GoogleMusic(Module):
         if params['playlist'] != '':
             result = self.gmusic.play_playlist(
                 params['playlist'],
-                lambda: None,
+                lambda: self.finish_action,
                 shuffle=command.startswith('shuffle'),
             )
+            self.running_action = True
         elif params['song'] != '':
-            self.gmusic.play_song(
+            result = self.gmusic.play_song(
                 params['song'],
-                lambda: None,
+                lambda: self.finish_action,
                 params['artist'],
                 params['album']
             )
+            self.running_action = True
         if result is not None:
             self.say(result)
 

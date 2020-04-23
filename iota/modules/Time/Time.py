@@ -20,13 +20,13 @@ class Timer(Process):
     def run(self):
         self.finished.wait(self.interval)
         if not self.finished.is_set():
-            self.callback('alarm_chime.mp3')
+            self.callback()
         self.finished.set()
 
 
 class Time(Module):
-    def __init__(self):
-        super().__init__(self)
+    def __init__(self, pipe):
+        super().__init__(self, pipe)
         self.timer = None
         self.timer_data = Manager().dict()
 
@@ -36,20 +36,24 @@ class Time(Module):
             if 'stop' in command or 'cancel' in command:
                 if self.timer is not None:
                     self.timer.cancel()
-                    return self.say('Timer has been cancelled')
+                    self.timer = None
+                    self.say('Timer has been cancelled')
                 else:
-                    return self.say('No timer has been set')
-            now = datetime.datetime.now()
-            self.say('It is {0:%I}:{0:%M} {0:%p}'.format(now))
-            return
-        if any([v == '' for v in [params['duration'], params['increment']]]):
+                    self.say('No timer has been set')
+            else:
+                now = datetime.datetime.now()
+                self.say('It is {0:%I}:{0:%M} {0:%p}'.format(now))
+        elif any([v == '' for v in [params['duration'], params['increment']]]):
             # They forgot one or both of the parameters
-            return
-        if self.timer is not None:
-            return self.say('You already have a timer set')
-        seconds = self._complex_to_seconds(params)
-        self._spawn_timer(seconds)
-        self.say('Timer set')
+            pass
+        elif self.timer is not None:
+            self.say('You already have a timer set')
+        else:
+            seconds = self._complex_to_seconds(params)
+            # subtract 1 from the total because the TTS call takes a second
+            self._spawn_timer(seconds - 1)
+            self.say('Timer set')
+        self.await_next_command()
 
     def _complex_to_seconds(self, params) -> int:
         primary = {
@@ -59,12 +63,11 @@ class Time(Module):
         }
         primary_is_complex = primary['mod'] != ''
         p_duration = self._duration_to_num(primary['duration'])
-        if primary['mod'] == 'half':
-            p_duration *= 1.5
-        elif primary['mod'] == 'quarter':
-            p_duration *= 1.25
-
         seconds = self._to_seconds(p_duration, primary['increment'])
+        if primary['mod'] in ['half', '1/2']:
+            seconds *= 1.5
+        elif primary['mod'] in ['quarter', '1/4']:
+            seconds *= 1.25
         if primary_is_complex:
             return seconds
         secondary = {
@@ -83,6 +86,7 @@ class Time(Module):
     def _duration_to_num(self, duration: str) -> int:
         if re.match(r'an?', duration):
             duration = 'one'
+        print(duration)
         return w2n.word_to_num(duration)
 
     def _to_seconds(self, duration: float, increment: str) -> int:
@@ -92,9 +96,14 @@ class Time(Module):
             'hour': lambda d: d * 60 * 60,
             'day': lambda d: d * 60 * 60 * 24
         }[increment](duration)
-        # subtract 1 from the total because the TTS call takes a second
-        return int(round(result)) - 1
+        return int(round(result))
 
     def _spawn_timer(self, seconds: int) -> None:
-        self.timer = Timer(seconds, callback=self.play_mp3)
+        self.timer = Timer(
+            seconds,
+            callback=lambda: self.finish_action(
+                lambda: self.play_mp3('alarm_chime.mp3')
+            )
+        )
         self.timer.start()
+        self.running_action = True

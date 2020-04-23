@@ -5,7 +5,6 @@ import pika
 from utils.mod_utils import (
     ModuleError,
     ModuleResponse,
-    ResponseType,
     MQ_KEY,
     MQ_EXCHANGE,
     parse_to_regexes
@@ -13,17 +12,20 @@ from utils.mod_utils import (
 
 
 class Module:
-    def __init__(self, child):
+    def __init__(self, child, pipe):
         # Get the name of the module for later
-        module = child.__class__.__name__
-        path = os.path.join('iota', 'modules', module)
+        self.name = child.__class__.__name__
+        self.pipe = pipe
+        self.running_action = True
+        path = os.path.join('iota', 'modules', self.name)
         # Load that module's config
-        with open(os.path.join(path, f'{module.lower()}.json'), 'r') as mcfg:
+        file_name = f'{self.name.lower()}.json'
+        with open(os.path.join(path, file_name), 'r') as mcfg:
             config = json.load(mcfg)
         # Verify the config file has at least commands
         if 'command_words' not in config.keys():
             raise ModuleError(
-                module,
+                self.name,
                 'Improperly formatted config: No command words'
             )
         # assign the regex-built commands to the Module
@@ -64,3 +66,17 @@ class Module:
 
     def run(self, command: str, regex):
         pass
+
+    def await_next_command(self):
+        print(f'{self.name} awaiting next command...')
+        while self.running_action:
+            if self.pipe.poll(1):
+                print(f'{self.name} heard from pipe!')
+                args = self.pipe.recv()
+                if isinstance(args, list) and len(args) == 2:
+                    self.run(*args)
+
+    def finish_action(self, callback=lambda: None):
+        print(f'{self.name} finishing action')
+        self.running_action = False
+        callback()

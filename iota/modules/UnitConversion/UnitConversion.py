@@ -38,6 +38,7 @@ class UnitConversion(Module):
             self.send_error(error)
         elif result is not None:
             self.say(result)
+        self.finish_action()
 
     def _strip_degrees(self, units):
         reg = re.compile(r'degree(?:s? |_)(?P<unit>.*)')

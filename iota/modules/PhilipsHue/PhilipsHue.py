@@ -15,7 +15,7 @@ class PhilipsHue(Module):
         params = get_params(command, regex, self.regexes.keys())
         action_fn = self._pick_action(params)
         action_fn()
-        self.acknowledge()
+        self.finish_action(callback=self.acknowledge)
 
     def _pick_action(self, params: dict) -> Callable:
         # All the commands require the name

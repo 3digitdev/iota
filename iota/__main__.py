@@ -6,10 +6,27 @@ import re
 import importlib
 import psutil
 import signal
-from multiprocessing import Process, Manager
+from multiprocessing import Process, Manager, Pipe
 
 import utils.mod_utils as Utils
 from Speech2Text import Speech2Text
+
+
+class RunningModule:
+    def __init__(self, process: Process, pipe: Pipe):
+        self.process = process
+        self.pid = process.pid
+        self.pipe = pipe
+
+    def is_alive(self):
+        return self.process is not None and self.process.is_alive()
+
+    def send(self, data: list):
+        self.pipe.send(data)
+
+    def kill(self):
+        self.pipe.close()
+        self.process.terminate()
 
 
 class Iota(object):
@@ -23,7 +40,7 @@ class Iota(object):
         self.singletons = {}
         # Playing mp3 stuff
         self.player = None
-        self.player_data = Manager().dict()
+        self.shared_data = Manager().dict()
         # Load all Modules
         for class_name in os.listdir(os.path.join('iota', 'modules')):
             if class_name == '__pycache__':
@@ -116,7 +133,7 @@ class Iota(object):
             # play mp3 file on repeat
             self.player = Process(
                 target=Utils._play_mp3,
-                args=(self.player_data, response.data)
+                args=(self.shared_data, response.data)
             )
             self.player.start()
         elif response.type == 'Acknowledge':
@@ -162,23 +179,32 @@ class Iota(object):
                 importlib.import_module(f'modules.{name}.{name}'), name
             )
             module = self.singletons[name]
-            if module is None:
+            print(f'Retrieved {module} from singletons')
+            if module is None or not module.is_alive():
+                print(f'{name} does not exists! Creating...')
                 # Instantiate the Module
-                module = mod_class()
-                self.singletons[name] = module
-            module_process = Process(target=module.run, args=(command, regex))
-            module_process.start()
+                parent_conn, child_conn = Pipe()
+                mod_obj = mod_class(child_conn)
+                mod_process = Process(
+                    target=mod_obj.run,
+                    args=(command, regex)
+                )
+                mod_process.start()
+                self.singletons[name] = RunningModule(mod_process, parent_conn)
+            elif isinstance(module, RunningModule):
+                print(f'{name} exists!  Sending command [{command}, {regex}]')
+                module.send([command, regex])
         except Utils.ModuleError:
             self.singletons[name] = None
             raise
 
     def _mp3_is_running(self):
-        return 'pid' in self.player_data.keys()
+        return 'pid' in self.shared_data.keys()
 
     def _stop_mp3(self):
         if self._mp3_is_running():
-            psutil.Process(self.player_data['pid']).send_signal(signal.SIGTERM)
-        self.player_data = Manager().dict()
+            psutil.Process(self.shared_data['pid']).send_signal(signal.SIGTERM)
+        self.shared_data = Manager().dict()
         self.resume_music()
 
     def pause_music(self):

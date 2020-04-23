@@ -15,7 +15,7 @@ class Vizio(Module):
         params = get_params(command, regex, self.regexes.keys())
         action_fn = self._pick_action(params)
         action_fn()
-        self.acknowledge()
+        self.finish_action(self.acknowledge)
 
     def _pick_action(self, params) -> Callable:
         action = params['action']
