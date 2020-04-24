@@ -8,8 +8,8 @@ from utils.mod_utils import get_params
 
 
 class UnitConversion(Module):
-    def __init__(self):
-        super().__init__(self)
+    def __init__(self, pipe):
+        super().__init__(self, pipe)
         self.unit_reg = UnitRegistry()
 
     def run(self, command: str, regex) -> str:

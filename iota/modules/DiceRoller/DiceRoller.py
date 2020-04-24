@@ -2,13 +2,13 @@ import random
 import re
 
 from modules.Module import Module
-from utils.mod_utils import get_params
+from utils.mod_utils import get_params, is_rounded_whole_number, trim_zeroes
 from utils.rpn import RPNCalculator
 
 
 class DiceRoller(Module):
-    def __init__(self):
-        super().__init__(self)
+    def __init__(self, pipe):
+        super().__init__(self, pipe)
 
     def run(self, command: str, regex) -> str:
         result = None
@@ -20,9 +20,9 @@ class DiceRoller(Module):
         else:
             # Dice expression
             result = self.parse_dice_expression(params['expression'])
-            if float(result).is_integer():
+            if is_rounded_whole_number(result):
                 result = f'{result.split(".")[0]}'
-            result = f'{float(result):.6f}'
+            result = trim_zeroes(f'{float(result):.6f}')
         if result is not None:
             self.say(result)
         self.finish_action()

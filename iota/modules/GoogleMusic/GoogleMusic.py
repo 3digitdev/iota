@@ -8,13 +8,14 @@ from utils.mod_utils import get_params
 
 
 class GoogleMusic(Module):
-    def __init__(self):
-        super().__init__(self)
+    def __init__(self, pipe):
+        super().__init__(self, pipe)
         self.gmusic = GoogleMusicController()
         self.current_volume = 0
         self.set_volume(5)
 
     def run(self, command: str, regex: str) -> str:
+        print("running", command)
         params = get_params(command, regex, self.regexes.keys())
         self._pick_action(command, params)
         self.await_next_command()
@@ -41,6 +42,8 @@ class GoogleMusic(Module):
         if command.startswith('start') and command.endswith('over'):
             return self.gmusic.start_over('song' not in command)
         # Playing songs
+        if command.startswith('resume'):
+            return self.gmusic.resume_song()
         if re.match(r'play ?(?:music|song)?$', command):
             return self.gmusic.resume_song()
         if params['playlist'] != '':
@@ -49,7 +52,6 @@ class GoogleMusic(Module):
                 lambda: self.finish_action,
                 shuffle=command.startswith('shuffle'),
             )
-            self.running_action = True
         elif params['song'] != '':
             result = self.gmusic.play_song(
                 params['song'],
@@ -57,7 +59,6 @@ class GoogleMusic(Module):
                 params['artist'],
                 params['album']
             )
-            self.running_action = True
         if result is not None:
             self.say(result)
 

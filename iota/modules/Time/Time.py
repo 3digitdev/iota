@@ -35,7 +35,8 @@ class Time(Module):
         if all([v == '' for v in params.values()]):
             if 'stop' in command or 'cancel' in command:
                 if self.timer is not None:
-                    self.timer.cancel()
+                    if not self.timer.finished.is_set():
+                        self.timer.cancel()
                     self.timer = None
                     self.say('Timer has been cancelled')
                 else:

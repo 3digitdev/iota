@@ -4,8 +4,8 @@ from modules.Module import Module
 
 
 class Date(Module):
-    def __init__(self):
-        super().__init__(self)
+    def __init__(self, pipe):
+        super().__init__(self, pipe)
 
     def run(self, command: str, regex) -> str:
         now = datetime.datetime.now()

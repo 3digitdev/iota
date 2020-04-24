@@ -6,7 +6,9 @@
         "after_count": "an?|[\\d,\\.]+"
     },
     "command_words": [
+        "how many {before_unit} (?:are |is )(?:in|and) {after_count} {after_unit}",
         "how many {before_unit} (?:in|and) {after_count} {after_unit}",
+        "how many {after_unit} is {before_count} {before_unit}",
         "how much is {before_count} {before_unit} (?:in|and) {after_unit}",
         "what is {before_count} {before_unit} (?:in|and) {after_unit}"
     ]

@@ -8,8 +8,8 @@ from utils.mod_utils import get_params
 
 
 class Vizio(Module):
-    def __init__(self):
-        super().__init__(self)
+    def __init__(self, pipe):
+        super().__init__(self, pipe)
 
     def run(self, command: str, regex) -> str:
         params = get_params(command, regex, self.regexes.keys())

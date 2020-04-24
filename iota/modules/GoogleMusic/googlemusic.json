@@ -5,7 +5,7 @@
         "album": ".*",
         "playlist": ".*",
         "direction": "previous|next",
-        "volume": "up|down|\\d{1,2}"
+        "volume": "up|down|\\d{1,2}|\\w+"
     },
     "command_words": [
         "play ?(?:music|song)?",

@@ -24,20 +24,25 @@ class VizioController(object):
         return f'https://{self.ip}:{self.port}/{"/".join(parts)}'
 
     def _call(self, method: str, parts: list, body={}) -> requests.Response:
-        if method == 'GET':
-            response = requests.get(
-                url=self._build_url(parts),
-                headers=self.headers,
-                verify=False
-            )
-        elif method == 'PUT':
-            response = requests.put(
-                url=self._build_url(parts),
-                headers=self.headers,
-                data=json.dumps(body),
-                verify=False
-            )
-        return response
+        try:
+            if method == 'GET':
+                response = requests.get(
+                    url=self._build_url(parts),
+                    headers=self.headers,
+                    verify=False
+                )
+            elif method == 'PUT':
+                response = requests.put(
+                    url=self._build_url(parts),
+                    headers=self.headers,
+                    data=json.dumps(body),
+                    verify=False
+                )
+            return response
+        except requests.exceptions.ConnectionError as e:
+            print("ERROR:  Couldn't connect to Vizio TV")
+            print(e)
+            return None
 
     def _get_power_state(self) -> requests.Response:
         return self._call('GET', ['state', 'device', 'power_mode'])
@@ -67,7 +72,7 @@ class VizioController(object):
             'GET',
             ['menu_native', 'dynamic', 'tv_settings', 'devices', 'name_input']
         )
-        if response.status_code == 200:
+        if response and response.status_code == 200:
             return [item['NAME'] for item in response.json()['ITEMS']]
         else:
             return []

@@ -118,3 +118,13 @@ def _play_mp3(shared, filename: str):
     process = Popen(['mpg123', '--quiet', '-Z', file_path])
     shared['pid'] = process.pid
     process.wait()
+
+
+def is_rounded_whole_number(num_str: str):
+    return float(f'{float(num_str):.6f}').is_integer()
+
+
+def trim_zeroes(num_str: str):
+    reg = re.compile(r'^(?:about )?(?P<trimmed>\d+\.\d*[1-9])[0]+$')
+    result = re.match(reg, num_str)
+    return num_str if result is None else result.groups()[0]

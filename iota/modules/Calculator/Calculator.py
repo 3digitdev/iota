@@ -1,13 +1,13 @@
 import re
 
 from modules.Module import Module
-from utils.mod_utils import get_params
+from utils.mod_utils import get_params, is_rounded_whole_number, trim_zeroes
 from utils.rpn import RPNCalculator
 
 
 class Calculator(Module):
-    def __init__(self):
-        super().__init__(self)
+    def __init__(self, pipe):
+        super().__init__(self, pipe)
         self.ors_reg = re.compile(self.regexes['operator'])
         self.ands_reg = re.compile(self.regexes['operand'])
 
@@ -19,10 +19,10 @@ class Calculator(Module):
             return
         calculator = RPNCalculator()
         value = calculator.calculate(expression)
-        if float(value).is_integer():
+        if is_rounded_whole_number(value):
             result = f'{value.split(".")[0]}'
         else:
-            result = f'about {float(value):.6f}'
+            result = f'about {trim_zeroes(f"{float(value):.6f}")}'
         if result is not None:
             self.say(result)
         self.finish_action()

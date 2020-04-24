@@ -68,15 +68,12 @@ class Module:
         pass
 
     def await_next_command(self):
-        print(f'{self.name} awaiting next command...')
-        while self.running_action:
+        while True:
             if self.pipe.poll(1):
-                print(f'{self.name} heard from pipe!')
                 args = self.pipe.recv()
                 if isinstance(args, list) and len(args) == 2:
                     self.run(*args)
 
     def finish_action(self, callback=lambda: None):
-        print(f'{self.name} finishing action')
         self.running_action = False
         callback()

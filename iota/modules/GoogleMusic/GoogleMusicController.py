@@ -188,6 +188,7 @@ class GoogleMusicController(object):
 
     def resume_song(self):
         if 'pid' in self.player_data.keys():
+            print('   yup')
             psutil.Process(self.player_data['pid']).send_signal(signal.SIGCONT)
 
     def stop_player(self):
@@ -202,8 +203,11 @@ class GoogleMusicController(object):
     def previous_song(self) -> str:
         if 'index' not in self.player_data.keys():
             return 'Could not start the playlist, missing index'
+        print('previous')
         idx = self.player_data['index']
+        print(f'was: {idx}')
         idx = idx - 1 if idx > 0 else 0
+        print(f'now: {idx}')
         if not self.player_data['done']:
             self.stop_player()
         self.play_playlist(
@@ -220,7 +224,8 @@ class GoogleMusicController(object):
 
 
 def spawn_player(get_url, playlist, shared, callback_at_end, start=0):
-    for index, song in enumerate(playlist.songs, start=start):
+    for index in range(start, len(playlist.songs)):
+        song = playlist.songs[index]
         stream_url = get_url(song.id).replace('https', 'http')
         process = Popen(['mpg123', '--quiet', stream_url])
         shared['pid'] = process.pid

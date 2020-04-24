@@ -21,6 +21,18 @@ class RunningModule:
     def is_alive(self):
         return self.process is not None and self.process.is_alive()
 
+    def pause_if_running(self):
+        if self.is_alive():
+            self.pipe.send(['pause', re.compile(r'pause')])
+
+    def resume_if_running(self):
+        if self.is_alive():
+            self.pipe.send(['resume', re.compile(r'resume')])
+
+    def stop(self):
+        if self.is_alive():
+            self.pipe.send(['stop', re.compile(r'stop')])
+
     def send(self, data: list):
         self.pipe.send(data)
 
@@ -179,9 +191,7 @@ class Iota(object):
                 importlib.import_module(f'modules.{name}.{name}'), name
             )
             module = self.singletons[name]
-            print(f'Retrieved {module} from singletons')
             if module is None or not module.is_alive():
-                print(f'{name} does not exists! Creating...')
                 # Instantiate the Module
                 parent_conn, child_conn = Pipe()
                 mod_obj = mod_class(child_conn)
@@ -192,7 +202,6 @@ class Iota(object):
                 mod_process.start()
                 self.singletons[name] = RunningModule(mod_process, parent_conn)
             elif isinstance(module, RunningModule):
-                print(f'{name} exists!  Sending command [{command}, {regex}]')
                 module.send([command, regex])
         except Utils.ModuleError:
             self.singletons[name] = None
@@ -206,6 +215,7 @@ class Iota(object):
             psutil.Process(self.shared_data['pid']).send_signal(signal.SIGTERM)
         self.shared_data = Manager().dict()
         self.resume_music()
+        self.singletons['Time'].stop()
 
     def pause_music(self):
         if self.singletons['GoogleMusic'] is None:
