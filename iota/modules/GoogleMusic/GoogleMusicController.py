@@ -188,7 +188,6 @@ class GoogleMusicController(object):
 
     def resume_song(self):
         if 'pid' in self.player_data.keys():
-            print('   yup')
             psutil.Process(self.player_data['pid']).send_signal(signal.SIGCONT)
 
     def stop_player(self):

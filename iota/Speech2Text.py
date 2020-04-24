@@ -71,6 +71,10 @@ class Speech2Text(Module):
         self.detector.terminate()
 
     def detected_wake_word(self):
+        self.send_response(
+            type='WakeWord',
+            response=''
+        )
         '''performs one-shot speech recognition from the default microphone'''
         # Creates a speech recognizer using microphone as audio input.
         # The default language is "en-us".

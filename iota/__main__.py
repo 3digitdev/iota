@@ -52,6 +52,7 @@ class Iota(object):
         self.singletons = {}
         # Playing mp3 stuff
         self.player = None
+        self.music_paused = False
         self.shared_data = Manager().dict()
         # Load all Modules
         try:
@@ -64,8 +65,10 @@ class Iota(object):
                     self._load_module(class_name)
             self._setup_mq()
         except Utils.ModuleError as me:
+            self.error_tone()
             print(f'{me.module} had an error:\n  {me.message}')
         except Exception as e:
+            self.error_tone()
             print(f'General error:\n  {e}')
 
     def _load_module(self, class_name: str):
@@ -136,7 +139,12 @@ class Iota(object):
     def consume(self, channel, method, header, body):
         try:
             response = Utils.response_from_str(body)
-            if response.type == 'VoiceCommand':
+            print(f'Starting consume: {response}')
+            if response.type == 'WakeWord':
+                pass
+                # TODO: Pause the music to listen to and process command!
+                # self.pause_music()
+            elif response.type == 'VoiceCommand':
                 # Received a command from the Listener
                 self.run_module(response.data)
             elif response.type == 'SpokenResponse':
@@ -151,12 +159,11 @@ class Iota(object):
                 # play mp3 file on repeat
                 self.player = Process(
                     target=Utils._play_mp3,
-                    args=(self.shared_data, response.data)
+                    args=(response.data, self.shared_data, True)
                 )
                 self.player.start()
             elif response.type == 'Acknowledge':
-                # TODO:  Properly handle some acknowledgement tone
-                pass
+                Utils._play_mp3('acknowledge.mp3')
             elif response.type == 'ErrorResponse':
                 raise Utils.ModuleError('ModuleRunner', response.data)
             else:
@@ -166,8 +173,10 @@ class Iota(object):
                     inner=response.data
                 )
         except Utils.ModuleError as me:
+            self.error_tone()
             print(f'{me.module} had an error:\n  {me.message}')
         except Exception as e:
+            self.error_tone()
             print(f'General Error:\n  {e}')
 
     def run_module(self, command):
@@ -175,6 +184,7 @@ class Iota(object):
         command = command.rstrip('.!?').lower()
         # TODO: CHANGE THIS?
         if command == 'stop' and self._mp3_is_running():
+            print("why")
             self._stop_mp3()
             return None
         if not any([re.match(reg, command) for reg in self.all_commands]):
@@ -220,6 +230,9 @@ class Iota(object):
     def _mp3_is_running(self):
         return 'pid' in self.shared_data.keys()
 
+    def error_tone(self):
+        Utils._play_mp3('error.mp3')
+
     def _stop_mp3(self):
         if self._mp3_is_running():
             psutil.Process(self.shared_data['pid']).send_signal(signal.SIGTERM)
@@ -228,14 +241,16 @@ class Iota(object):
         self.singletons['Time'].stop()
 
     def pause_music(self):
-        if self.singletons['GoogleMusic'] is None:
+        if self.music_paused or self.singletons['GoogleMusic'] is None:
             return
         self.singletons['GoogleMusic'].pause_if_running()
+        self.music_paused = True
 
     def resume_music(self):
-        if self.singletons['GoogleMusic'] is None:
+        if not self.music_paused or self.singletons['GoogleMusic'] is None:
             return
         self.singletons['GoogleMusic'].resume_if_running()
+        self.music_paused = False
 
 
 def main():

@@ -29,6 +29,7 @@ SPEECH_CONFIG = speechsdk.SpeechConfig(
 
 # --- MODULE STUFF --- #
 class ResponseType():
+    WakeWord = 'WakeWord',
     VoiceCommand = 'VoiceCommand',
     SpokenResponse = 'SpokenResponse',
     Mp3Response = 'Mp3Response',
@@ -113,10 +114,15 @@ def speak_phrase(phrase) -> None:
                 print(f'Error details: {error.error_details}')
 
 
-def _play_mp3(shared, filename: str):
+def _play_mp3(filename: str, shared=None, repeat=False):
     file_path = os.path.join('iota', 'resources', filename)
-    process = Popen(['mpg123', '--quiet', '-Z', file_path])
-    shared['pid'] = process.pid
+    if repeat:
+        args = ['mpg123', '--quiet', '-Z', file_path]
+    else:
+        args = ['mpg123', '--quiet', file_path]
+    process = Popen(args)
+    if shared is not None:
+        shared['pid'] = process.pid
     process.wait()
 
 

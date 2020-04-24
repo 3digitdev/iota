@@ -4,8 +4,8 @@ _Home Automation using Python_
 
 # TODO
 
+- Add ability to mute music when listening to and processing a command
 - Create method to automatically re-pair with TV [separate command!]
-- Add "acknowledgment" tone to repertoir and utilize it for nonverbal responses
 - Build a Docker Image for running Iota
   - Learn how to connect external speakers and microphones to a Docker Image
   - Learn how to automatically update Docker Image from latest release on GitHub
@@ -100,3 +100,12 @@ to speak a phrase as a result.  You can also play a saved mp3 file, throw an err
 "acknowledge" the request (currently a NoOp -- eventually will play a tone)
 
 **For ideas on how to handle parameters on commands, see Vizio or PhilipsHue for examples! (Note that the `"regexes"` key will be required in your `.json` file for this!)**
+
+
+# Attribution
+
+The `acknowledge.mp3` and `error.mp3` files are licensed under [Creative Commons](https://creativecommons.org/licenses/by/4.0/legalcode) through [NotificationSounds.com](https://notificationsounds.com/).
+
+The files are located at [Me Too (acknowledge)](https://notificationsounds.com/notification-sounds/me-too-603) and [Case Closed (error)](https://notificationsounds.com/notification-sounds/case-closed-531)
+
+Both were modified slightly to remove the silence at the end, but the original tones are still the same.
