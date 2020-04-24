@@ -64,7 +64,9 @@ class Speech2Text(Module):
             # Time to sleep between loops in seconds
             sleep_time=0.03,
             # Amount of silence that's needed to stop recording phrase
-            silent_count_threshold=7
+            silent_count_threshold=7,
+            # Maximum seconds it will listen after wake word is heard
+            recording_timeout=10
         )
         self.detector.terminate()
 
