@@ -202,11 +202,8 @@ class GoogleMusicController(object):
     def previous_song(self) -> str:
         if 'index' not in self.player_data.keys():
             return 'Could not start the playlist, missing index'
-        print('previous')
         idx = self.player_data['index']
-        print(f'was: {idx}')
         idx = idx - 1 if idx > 0 else 0
-        print(f'now: {idx}')
         if not self.player_data['done']:
             self.stop_player()
         self.play_playlist(

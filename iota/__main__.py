@@ -139,7 +139,6 @@ class Iota(object):
     def consume(self, channel, method, header, body):
         try:
             response = Utils.response_from_str(body)
-            print(f'Starting consume: {response}')
             if response.type == 'WakeWord':
                 pass
                 # TODO: Pause the music to listen to and process command!
@@ -184,7 +183,6 @@ class Iota(object):
         command = command.rstrip('.!?').lower()
         # TODO: CHANGE THIS?
         if command == 'stop' and self._mp3_is_running():
-            print("why")
             self._stop_mp3()
             return None
         if not any([re.match(reg, command) for reg in self.all_commands]):
