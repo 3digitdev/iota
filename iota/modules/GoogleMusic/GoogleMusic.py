@@ -15,10 +15,12 @@ class GoogleMusic(Module):
         self.set_volume(5)
 
     def run(self, command: str, regex: str) -> str:
-        print("running", command)
-        params = get_params(command, regex, self.regexes.keys())
-        self._pick_action(command, params)
-        self.await_next_command()
+        try:
+            params = get_params(command, regex, self.regexes.keys())
+            self._pick_action(command, params)
+            self.await_next_command()
+        except Exception as e:
+            self.log_exception(e)
 
     def _pick_action(self, command: str, params: dict) -> str:
         result = None

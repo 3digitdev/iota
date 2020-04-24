@@ -41,7 +41,7 @@ class VizioController(object):
             return response
         except requests.exceptions.ConnectionError as e:
             print("ERROR:  Couldn't connect to Vizio TV")
-            print(e)
+            self.log_exception(e)
             return None
 
     def _get_power_state(self) -> requests.Response:

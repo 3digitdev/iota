@@ -12,10 +12,12 @@ class Vizio(Module):
         super().__init__(self, pipe)
 
     def run(self, command: str, regex) -> str:
-        params = get_params(command, regex, self.regexes.keys())
-        action_fn = self._pick_action(params)
-        action_fn()
-        self.finish_action(self.acknowledge)
+        try:
+            params = get_params(command, regex, self.regexes.keys())
+            action_fn = self._pick_action(params)
+            action_fn()
+        except Exception as e:
+            self.log_exception(e)
 
     def _pick_action(self, params) -> Callable:
         action = params['action']

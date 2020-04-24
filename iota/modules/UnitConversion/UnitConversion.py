@@ -15,30 +15,37 @@ class UnitConversion(Module):
     def run(self, command: str, regex) -> str:
         error = None
         result = None
-        params = get_params(command, regex, self.regexes.keys())
-        if any([p is None for p in params.values()]) or params.keys() == []:
-            return
-        # one useful thing for temperature
-        before_unit = self._strip_degrees(params['before_unit'])
-        after_unit = self._strip_degrees(params['after_unit'])
         try:
-            before = self.unit_reg(before_unit)
-            after = self.unit_reg(after_unit)
-            if params['after_count'] != '':
-                result = self._convert(after, before, params['after_count'])
-            elif params['before_count'] != '':
-                result = self._convert(before, after, params['before_count'])
-        except OffsetUnitCalculusError as err:
-            error = f'Conversion Error: {err}'
-        except UndefinedUnitError as err:
-            error = f'Undefined unit: {err}'
-        except DimensionalityError as err:
-            error = f'Conversion Error:  {err}'
-        if error is not None:
-            self.send_error(error)
-        elif result is not None:
-            self.say(result)
-        self.finish_action()
+            params = get_params(command, regex, self.regexes.keys())
+            if any([p is None for p in params.values()]) or \
+                    params.keys() == []:
+                return
+            # one useful thing for temperature
+            before_unit = self._strip_degrees(params['before_unit'])
+            after_unit = self._strip_degrees(params['after_unit'])
+            try:
+                before = self.unit_reg(before_unit)
+                after = self.unit_reg(after_unit)
+                if params['after_count'] != '':
+                    result = self._convert(
+                        after, before, params['after_count']
+                    )
+                elif params['before_count'] != '':
+                    result = self._convert(
+                        before, after, params['before_count']
+                    )
+            except OffsetUnitCalculusError as err:
+                error = f'Conversion Error: {err}'
+            except UndefinedUnitError as err:
+                error = f'Undefined unit: {err}'
+            except DimensionalityError as err:
+                error = f'Conversion Error:  {err}'
+            if error is not None:
+                self.send_error(error)
+            elif result is not None:
+                self.say(result)
+        except Exception as e:
+            self.log_exception(e)
 
     def _strip_degrees(self, units):
         reg = re.compile(r'degree(?:s? |_)(?P<unit>.*)')

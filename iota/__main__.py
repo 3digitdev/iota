@@ -54,14 +54,19 @@ class Iota(object):
         self.player = None
         self.shared_data = Manager().dict()
         # Load all Modules
-        for class_name in os.listdir(os.path.join('iota', 'modules')):
-            if class_name == '__pycache__':
-                continue
-            # open each module folder in turn
-            if os.path.isdir(os.path.join('iota', 'modules', class_name)):
-                self.singletons[class_name] = None
-                self._load_module(class_name)
-        self._setup_mq()
+        try:
+            for class_name in os.listdir(os.path.join('iota', 'modules')):
+                if class_name == '__pycache__':
+                    continue
+                # open each module folder in turn
+                if os.path.isdir(os.path.join('iota', 'modules', class_name)):
+                    self.singletons[class_name] = None
+                    self._load_module(class_name)
+            self._setup_mq()
+        except Utils.ModuleError as me:
+            print(f'{me.module} had an error:\n  {me.message}')
+        except Exception as e:
+            print(f'General error:\n  {e}')
 
     def _load_module(self, class_name: str):
         # Load the module and its commands into memory
@@ -89,6 +94,7 @@ class Iota(object):
                 inner=f'{err.msg} (Line {err.lineno})'
             )
 
+    # --- RabbitMQ/Pika Functions --- #
     def _setup_mq(self):
         # --- RabbitMQ/Pika Setup --- #
         params = pika.ConnectionParameters()
@@ -103,7 +109,6 @@ class Iota(object):
             self.conn.close()
         # --- End RabbitMQ/Pika Setup --- #
 
-    # --- RabbitMQ/Pika Functions --- #
     def on_connected(self, conn):
         conn.channel(on_open_callback=self.on_channel_open)
 
@@ -129,36 +134,41 @@ class Iota(object):
     # --- End RabbitMQ/Pika Functions --- #
 
     def consume(self, channel, method, header, body):
-        response = Utils.response_from_str(body)
-        if response.type == 'VoiceCommand':
-            # Received a command from the Listener
-            self.run_module(response.data)
-        elif response.type == 'SpokenResponse':
-            # Received a response from one of the Modules
-            with open('last_response.txt', 'w') as lr:
-                lr.write(response.data)
-            Utils.speak_phrase(response.data)
-        elif response.type == 'Mp3Response':
-            if '.mp3' not in response.data:
-                return
-            self.pause_music()
-            # play mp3 file on repeat
-            self.player = Process(
-                target=Utils._play_mp3,
-                args=(self.shared_data, response.data)
-            )
-            self.player.start()
-        elif response.type == 'Acknowledge':
-            # TODO:  Properly handle some acknowledgement tone
-            pass
-        elif response.type == 'ErrorResponse':
-            raise Utils.ModuleError('ModuleRunner', response.data)
-        else:
-            raise Utils.ModuleError(
-                'ModuleRunner',
-                f'The ResponseType {response.type} is not supported',
-                inner=response.data
-            )
+        try:
+            response = Utils.response_from_str(body)
+            if response.type == 'VoiceCommand':
+                # Received a command from the Listener
+                self.run_module(response.data)
+            elif response.type == 'SpokenResponse':
+                # Received a response from one of the Modules
+                with open('last_response.txt', 'w') as lr:
+                    lr.write(response.data)
+                Utils.speak_phrase(response.data)
+            elif response.type == 'Mp3Response':
+                if '.mp3' not in response.data:
+                    return
+                self.pause_music()
+                # play mp3 file on repeat
+                self.player = Process(
+                    target=Utils._play_mp3,
+                    args=(self.shared_data, response.data)
+                )
+                self.player.start()
+            elif response.type == 'Acknowledge':
+                # TODO:  Properly handle some acknowledgement tone
+                pass
+            elif response.type == 'ErrorResponse':
+                raise Utils.ModuleError('ModuleRunner', response.data)
+            else:
+                raise Utils.ModuleError(
+                    'ModuleRunner',
+                    f'The ResponseType {response.type} is not supported',
+                    inner=response.data
+                )
+        except Utils.ModuleError as me:
+            print(f'{me.module} had an error:\n  {me.message}')
+        except Exception as e:
+            print(f'General Error:\n  {e}')
 
     def run_module(self, command):
         found = False
@@ -178,7 +188,7 @@ class Iota(object):
                     found = True
                     try:
                         self._spawn_module(name, command, regex)
-                    except Utils.ModuleError:
+                    except Exception:
                         raise
                     break
             if found:
@@ -203,7 +213,7 @@ class Iota(object):
                 self.singletons[name] = RunningModule(mod_process, parent_conn)
             elif isinstance(module, RunningModule):
                 module.send([command, regex])
-        except Utils.ModuleError:
+        except Exception:
             self.singletons[name] = None
             raise
 
@@ -231,8 +241,8 @@ class Iota(object):
 def main():
     try:
         Iota()
-    except Utils.ModuleError as err:
-        print(f'Your {err.module} module has an error:\n  {err.message}')
+    except Utils.ModuleError as me:
+        print(f'{me.module} had an error:\n  {me.message}')
 
 
 if __name__ == '__main__':

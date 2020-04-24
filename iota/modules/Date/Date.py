@@ -8,10 +8,12 @@ class Date(Module):
         super().__init__(self, pipe)
 
     def run(self, command: str, regex) -> str:
-        now = datetime.datetime.now()
-        day = self._parse_day(now)
-        self.say('It is {0:%A} {0:%B} {1}, {0:%Y}'.format(now, day))
-        self.finish_action()
+        try:
+            now = datetime.datetime.now()
+            day = self._parse_day(now)
+            self.say('It is {0:%A} {0:%B} {1}, {0:%Y}'.format(now, day))
+        except Exception as e:
+            self.log_exception(e)
 
     def _parse_day(self, now: datetime.date) -> str:
         day = f'{now:%d}'.lstrip('0')

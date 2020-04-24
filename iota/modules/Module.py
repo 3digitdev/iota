@@ -64,6 +64,9 @@ class Module:
     def play_mp3(self, file):
         self.send_response('Mp3Response', file)
 
+    def log_exception(self, e: Exception):
+        print(e)
+
     def run(self, command: str, regex):
         pass
 

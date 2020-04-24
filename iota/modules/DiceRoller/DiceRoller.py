@@ -11,21 +11,23 @@ class DiceRoller(Module):
         super().__init__(self, pipe)
 
     def run(self, command: str, regex) -> str:
-        result = None
-        params = get_params(command, regex, self.regexes.keys())
-        if command == 'flip a coin':
-            result = random.choice(['heads', 'tails'])
-        elif command == 'roll a dice':
-            result = str(random.randint(1, 6))
-        else:
-            # Dice expression
-            result = self.parse_dice_expression(params['expression'])
-            if is_rounded_whole_number(result):
-                result = f'{result.split(".")[0]}'
-            result = trim_zeroes(f'{float(result):.6f}')
-        if result is not None:
-            self.say(result)
-        self.finish_action()
+        try:
+            result = None
+            params = get_params(command, regex, self.regexes.keys())
+            if command == 'flip a coin':
+                result = random.choice(['heads', 'tails'])
+            elif command == 'roll a dice':
+                result = str(random.randint(1, 6))
+            else:
+                # Dice expression
+                result = self.parse_dice_expression(params['expression'])
+                if is_rounded_whole_number(result):
+                    result = f'{result.split(".")[0]}'
+                result = trim_zeroes(f'{float(result):.6f}')
+            if result is not None:
+                self.say(result)
+        except Exception as e:
+            self.log_exception(e)
 
     def parse_dice_expression(self, expression):
         expression = expression.replace(' ', '')

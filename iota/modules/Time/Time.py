@@ -31,30 +31,33 @@ class Time(Module):
         self.timer_data = Manager().dict()
 
     def run(self, command: str, regex) -> str:
-        params = get_params(command, regex, self.regexes.keys())
-        if all([v == '' for v in params.values()]):
-            if 'stop' in command or 'cancel' in command:
-                if self.timer is not None:
-                    if not self.timer.finished.is_set():
-                        self.timer.cancel()
-                    self.timer = None
-                    self.say('Timer has been cancelled')
+        try:
+            params = get_params(command, regex, self.regexes.keys())
+            if all([v == '' for v in params.values()]):
+                if 'stop' in command or 'cancel' in command:
+                    if self.timer is not None:
+                        if not self.timer.finished.is_set():
+                            self.timer.cancel()
+                        self.timer = None
+                        self.say('Timer has been cancelled')
+                    else:
+                        self.say('No timer has been set')
                 else:
-                    self.say('No timer has been set')
+                    now = datetime.datetime.now()
+                    self.say('It is {0:%I}:{0:%M} {0:%p}'.format(now))
+            elif any([v == '' for v in [params['duration'], params['increment']]]):
+                # They forgot one or both of the parameters
+                pass
+            elif self.timer is not None:
+                self.say('You already have a timer set')
             else:
-                now = datetime.datetime.now()
-                self.say('It is {0:%I}:{0:%M} {0:%p}'.format(now))
-        elif any([v == '' for v in [params['duration'], params['increment']]]):
-            # They forgot one or both of the parameters
-            pass
-        elif self.timer is not None:
-            self.say('You already have a timer set')
-        else:
-            seconds = self._complex_to_seconds(params)
-            # subtract 1 from the total because the TTS call takes a second
-            self._spawn_timer(seconds - 1)
-            self.say('Timer set')
-        self.await_next_command()
+                seconds = self._complex_to_seconds(params)
+                # subtract 1 from the total because the TTS call takes a second
+                self._spawn_timer(seconds - 1)
+                self.say('Timer set')
+            self.await_next_command()
+        except Exception as e:
+            self.log_exception(e)
 
     def _complex_to_seconds(self, params) -> int:
         primary = {
