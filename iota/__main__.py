@@ -100,9 +100,10 @@ class Iota(object):
     # --- RabbitMQ/Pika Functions --- #
     def _setup_mq(self):
         # --- RabbitMQ/Pika Setup --- #
-        params = pika.ConnectionParameters()
+        creds = pika.PlainCredentials('user', 'bitnami')
+        params = pika.ConnectionParameters('rabbitmq-server', 5672, '/', creds)
         self.conn = pika.SelectConnection(
-            params, on_open_callback=self.on_connected
+            params, on_open_callback=lambda x: self.on_connected(x)
         )
         try:
             # Loop so we can communicate with RabbitMQ
@@ -117,8 +118,18 @@ class Iota(object):
 
     def on_channel_open(self, channel):
         self.channel = channel
-        self.channel.exchange_declare(exchange=Utils.MQ_EXCHANGE)
-        self.channel.queue_purge(Utils.MQ_KEY)
+        self.channel.exchange_declare(
+            exchange=Utils.MQ_EXCHANGE, callback=self.declare_queue
+        )
+
+    def declare_queue(self, frame):
+        self.channel.queue_declare(
+            queue=Utils.MQ_KEY,
+            durable=True,
+            callback=self.bind_queue
+        )
+
+    def bind_queue(self, frame):
         self.channel.queue_bind(
             queue=Utils.MQ_KEY,
             exchange=Utils.MQ_EXCHANGE,

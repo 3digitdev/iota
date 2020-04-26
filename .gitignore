@@ -6,6 +6,9 @@ last_response.txt
 # Ignore google auth file
 auth.json
 
+# docker stuff
+.env
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

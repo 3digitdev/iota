@@ -72,7 +72,7 @@ class GoogleMusicController(object):
         self.device_id = os.environ['GOOGLE_MUSIC_DEVICE_ID']
         self.client = Mobileclient(debug_logging=False)
         # TODO: change this to relative path from run location
-        self.client.oauth_login(Mobileclient.FROM_MAC_ADDRESS, 'auth.json')
+        self.client.oauth_login(Mobileclient.FROM_MAC_ADDRESS, 'iota/auth.json')
         self.player_data = Manager().dict()
         self.player = None
         self.player_pid = None

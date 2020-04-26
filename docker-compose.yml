@@ -1,0 +1,23 @@
+version: '3'
+
+networks:
+  iota_network:
+    driver: bridge
+
+services:
+  rabbitmq-server:
+    image: 'bitnami/rabbitmq:latest'
+    networks:
+      - iota_network
+  iota:
+    image: 'iota:latest'
+    devices:
+      - '/dev/snd:/dev/snd'
+    links:
+      - 'rabbitmq-server'
+    env_file:
+      - '.env'
+    networks:
+      - iota_network
+    depends_on:
+      - 'rabbitmq-server'

@@ -36,8 +36,9 @@ class Module:
         self._setup_mq()
 
     def _setup_mq(self):
+        creds = pika.PlainCredentials('user', 'bitnami')
         self.conn = pika.BlockingConnection(
-            pika.ConnectionParameters(host='localhost')
+            pika.ConnectionParameters('rabbitmq-server', 5672, '/', creds)
         )
         self.channel = self.conn.channel()
         self.channel.exchange_declare(MQ_EXCHANGE)

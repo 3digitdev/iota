@@ -38,34 +38,15 @@ your own machine, and you can modify the calls to the Azure CogServ in the code
 to instead call to this Docker image instead.  I make no guarantees on the quality
 of translation, as I have not tested it for myself.  Caveat emptor.
 
-## Dependencies
-
-- azure-cognitiveservices-speech
-- pyaudio
-- word2number
-- wakeonlan (used for Vizio Module)
-- pint (used for UnitConversion Module)
-- pika (used for the message queue)
-- rabbitmq-server (**Not a Python package, but needed to run app**)
-
-For all of the above, run:
-
-```
-python3 -m pip install \
-    azure-cognitiveservices-speech \
-    pyaudio \
-    word2number \
-    wakeonlan \
-    pint \
-    pika
-```
-
-- For `init_module.py`:
-  - Bullet (`python3 -m pip install bullet`)
-
 ## Usage:
 
+### Local
+
 **From project root**, run `python3 iota`, then say something!
+
+### Docker
+
+**TODO!!**
 
 ## Creating a Module:
 
